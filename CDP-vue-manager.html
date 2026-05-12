@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Manager — BME France CDP</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --red: #FF0028;
+            --red-dark: #CC0020;
+            --red-light: #FFF5F6;
+            --black: #0A0A0A;
+            --white: #FFFFFF;
+
+            --gray-50: #F7F7F7;
+            --gray-100: #F4F4F4;
+            --gray-200: #E2E2E2;
+            --gray-300: #D8D8D8;
+            --gray-400: #9A9A9A;
+            --gray-500: #7A7A7A;
+            --gray-600: #555555;
+            --gray-700: #2E2E2E;
+            --gray-800: #1A1A1A;
+
+            --success: #4BCA81;
+            --success-bg: #EAF7EE;
+            --warning: #FFB75D;
+            --warning-bg: #FFF4E5;
+            --error: #EA001E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            color: var(--black);
+            line-height: 1.5;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            zoom: 0.8;
+        }
+
+        h1, h2 {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+        }
+
+        .app-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar-nav {
+            width: 80px;
+            min-width: 80px;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 14px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow: hidden;
+            transition: width 0.25s ease;
+            border-right: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .sidebar-nav::before {
+            content: '';
+            position: absolute;
+            top: -120px;
+            left: -60px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,0,40,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .sidebar-nav:hover {
+            width: 80px;
+        }
+
+        .sidebar-logo {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            background: var(--red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            letter-spacing: 1px;
+            color: var(--white);
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        .sidebar-icon {
+            width: 52px;
+            min-height: 38px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            color: var(--gray-400);
+            font-size: 18px;
+            margin-bottom: 4px;
+            padding: 6px 4px;
+            box-sizing: border-box;
+            transition: background 0.18s ease, color 0.18s ease;
+            flex-shrink: 0;
+            white-space: nowrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar-icon svg {
+            flex-shrink: 0;
+        }
+
+        .sidebar-label {
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--white);
+            opacity: 1;
+            transition: opacity 0.2s ease 0.05s;
+            pointer-events: none;
+            text-align: center;
+            line-height: 1.1;
+            letter-spacing: 0.3px;
+        }
+
+        .sidebar-nav:hover .sidebar-label {
+            opacity: 1;
+        }
+
+        .sidebar-icon:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
+        }
+
+        .sidebar-icon.light {
+            color: rgba(255,255,255,0.55);
+        }
+
+        .sidebar-icon.light:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--white);
+        }
+
+        .sidebar-icon.active,
+        .sidebar-icon.light.active {
+            background: var(--red);
+            color: var(--white);
+            box-shadow: 0 4px 14px rgba(255,0,40,0.35);
+        }
+
+        .sidebar-icon.danger:hover {
+            background: rgba(255,0,40,0.18);
+            color: var(--red);
+        }
+
+        .container {
+            flex: 1;
+            min-width: 0;
+            margin-left: 80px;
+            width: calc(100% - 80px);
+            box-sizing: border-box;
+        }
+
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 14px 24px;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Accueil page ── */
+        .page-accueil {
+            padding: 28px 32px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #F4F6F9;
+            min-height: calc(100vh - 54px);
+        }
+
+        .quick-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0 8px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .stat-value {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--black);
+            line-height: 1;
+            letter-spacing: -0.01em;
+        }
+
+        .stat-trend {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #54698D;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+        }
+
+        .data-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #E5E5E5;
+            overflow: hidden;
+        }
+
+        .data-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-card thead tr {
+            background: #F4F6F9;
+            border-bottom: 1px solid #E5E5E5;
+        }
+
+        .data-card th {
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #54698D;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-card td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #F0F0F0;
+            color: #3E3E3C;
+            vertical-align: middle;
+        }
+
+        .data-card tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-card tbody tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+        <div class="sidebar-logo" style="font-size:11px;letter-spacing:1px;">CDP</div>
+        <div class="sidebar-icon light active" title="Accueil" style="margin-top:4px;" onclick="showPage('accueil', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+                <polyline points="9 21 9 12 15 12 15 21"/>
+            </svg><span class="sidebar-label">Accueil</span>
+        </div>
+        <div class="sidebar-icon light" title="Équipes" style="margin-top:4px;" onclick="showPage('equipes', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <line x1="8" y1="14" x2="8" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="12" y1="14" x2="12" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="16" y1="14" x2="16" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="8" y1="18" x2="8" y2="18" stroke-linecap="round" stroke-width="3"/>
+                <line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round" stroke-width="3"/>
+            </svg><span class="sidebar-label">Équipes</span>
+        </div>
+        <div class="sidebar-icon light" title="Clients" style="margin-top:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 2h13a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                <line x1="19" y1="8" x2="21" y2="8"/>
+                <line x1="19" y1="12" x2="21" y2="12"/>
+                <line x1="19" y1="16" x2="21" y2="16"/>
+                <circle cx="10" cy="9" r="3"/>
+                <path d="M6 20c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
+            </svg><span class="sidebar-label">Clients</span>
+        </div>
+        <div class="sidebar-icon light" title="Dashboard" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="9" y1="17" x2="8" y2="21"/>
+                <line x1="15" y1="17" x2="16" y2="21"/>
+                <line x1="7" y1="21" x2="17" y2="21"/>
+                <polyline points="5 13 7.5 10 10 12 13 8"/>
+                <path d="M17 7 A3 3 0 1 1 14.5 9.5"/>
+                <line x1="17" y1="7" x2="17" y2="10"/>
+                <line x1="17" y1="10" x2="14.5" y2="9.5"/>
+            </svg><span class="sidebar-label">Dashboard</span>
+        </div>
+        <div class="sidebar-icon light" title="Pipeline commercial" style="margin-top:4px;" onclick="showPage('pipeline', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 3 L20 3 L14 11 L14 19 L10 21 L10 11 Z"/>
+                <line x1="4" y1="7" x2="8" y2="7"/>
+                <line x1="16" y1="7" x2="20" y2="7"/>
+            </svg><span class="sidebar-label">Pipeline</span>
+        </div>
+        <div class="sidebar-icon light" title="Prospects / Cibles" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+                <circle cx="12" cy="10" r="2"/>
+                <path d="M8.5 17c0-2 1.6-3.5 3.5-3.5s3.5 1.5 3.5 3.5"/>
+            </svg><span class="sidebar-label">Prospects</span>
+        </div>
+        <div class="sidebar-icon light" title="Visites" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C8 2 5 5 5 9c0 4.5 5 11 7 13 2-2 7-8.5 7-13 0-4-3-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+            </svg><span class="sidebar-label">Visites</span>
+        </div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-icon" title="Paramètres">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg><span class="sidebar-label">Paramètres</span>
+        </div>
+        <div class="sidebar-icon" title="Déconnexion" style="margin-bottom:4px;" onclick="window.location.href='login.html'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg><span class="sidebar-label">Déconnexion</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="searchArea">
+        <!-- Header -->
+        <div class="header">
+            <!-- Barre de recherche -->
+            <div style="position:relative;height:54px;display:flex;justify-content:center;align-items:center;border-bottom:1px solid var(--gray-200);margin:-14px -24px 14px -24px;padding:0 24px;">
+                <input type="text" placeholder="Rechercher un compte, un contact, un chantier..." style="width:50%;box-sizing:border-box;padding:10px 18px;border:1.5px solid var(--gray-200);border-radius:999px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--black);outline:none;background:var(--gray-50);transition:border-color 0.15s, background 0.15s, box-shadow 0.15s;" onfocus="this.style.borderColor='var(--red)';this.style.background='#fff';this.style.boxShadow='0 0 0 3px rgba(255,0,40,0.08)'" onblur="this.style.borderColor='var(--gray-200)';this.style.background='var(--gray-50)';this.style.boxShadow='none'">
+                <span id="raToggle" style="margin-left:14px;font-size:12px;color:var(--red);cursor:pointer;white-space:nowrap;font-weight:500;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" onclick="toggleRA()">Recherche avancée ▾</span>
+                <button onclick="openHelpModal()" style="position:absolute;right:24px;background:transparent;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#3E3E3C;">
+                        <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"></path>
+                        <line x1="7" y1="7" x2="17" y2="7"></line>
+                        <line x1="7" y1="11" x2="15" y2="11"></line>
+                        <line x1="7" y1="15" x2="13" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Panneau Recherche Avancée -->
+            <div id="raPanel" style="display:none;background:var(--gray-50);padding:18px 24px;border-bottom:1px solid var(--gray-200);box-shadow:0 4px 12px rgba(0,0,0,0.04);animation:slideDown 0.2s ease;margin:-14px -24px 14px -24px;">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Secteur d'activité</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Tous les secteurs</option>
+                        <option>Plâtrerie / Isolation</option>
+                        <option>Peinture / Décoration</option>
+                        <option>Gros œuvre</option>
+                        <option>Menuiserie / Charpente</option>
+                        <option>Électricité / Plomberie</option>
+                        <option>Multi-corps d'état</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Statut client</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Tous</option>
+                        <option>Actif</option>
+                        <option>Inactif</option>
+                        <option>Prospect</option>
+                        <option>Suspendu</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">ATC référent</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Tous les ATC</option>
+                        <option>Sophie Martin</option>
+                        <option>Marc Dupuis</option>
+                        <option>Julie Bernard</option>
+                        <option>Thomas Laurent</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Agence de rattachement</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Toutes les agences</option>
+                        <option>Paris Sud</option>
+                        <option>Ivry-sur-Seine</option>
+                        <option>Boulogne-Billancourt</option>
+                        <option>Saint-Denis</option>
+                        <option>Créteil</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">CA annuel (€)</label>
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <input type="number" placeholder="Min" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <span style="font-size:11px;color:var(--gray-500);font-weight:500;">à</span>
+                        <input type="number" placeholder="Max" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                    </div>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Famille produits</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Toutes familles</option>
+                        <option>Plâtrerie</option>
+                        <option>Isolation</option>
+                        <option>Outillage</option>
+                        <option>Peinture</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Groupement / Réseau</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Tous</option>
+                        <option>FFB</option>
+                        <option>CAPEB</option>
+                        <option>Groupement Indépendant</option>
+                        <option>Non affilié</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Dernière visite</label>
+                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                        <option value="">Toutes périodes</option>
+                        <option>Cette semaine</option>
+                        <option>Ce mois</option>
+                        <option>Il y a moins de 3 mois</option>
+                        <option>Il y a plus de 3 mois</option>
+                        <option>Jamais visité</option>
+                    </select>
+                    </div>
+
+                </div>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
+                    <span style="font-size:11px;color:var(--gray-600);font-weight:500;">
+                    <input type="checkbox" id="raStock" style="accent-color:var(--red);"> Stock client actif &nbsp;
+                    <input type="checkbox" id="raAdherent" style="accent-color:var(--red);"> Adhérent &nbsp;
+                    <input type="checkbox" id="raNps" style="accent-color:var(--red);"> NPS &gt; 0
+                    </span>
+                    <button onclick="toggleRA()" style="padding:8px 16px;border:1.5px solid var(--gray-200);border-radius:8px;background:var(--white);color:var(--gray-700);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:border-color 0.15s, background 0.15s;" onmouseover="this.style.borderColor='var(--gray-400)';this.style.background='var(--gray-50)'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.background='var(--white)'">Réinitialiser</button>
+                    <button style="padding:8px 20px;border:none;border-radius:8px;background:var(--red);color:var(--white);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(255,0,40,0.25);transition:background 0.15s;" onmouseover="this.style.background='var(--red-dark)'" onmouseout="this.style.background='var(--red)'">Lancer la recherche</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- ── Page Accueil Manager ── -->
+        <div id="pageAccueil" class="page-accueil">
+
+            <!-- Titre -->
+            <div style="font-size:20px;font-weight:600;color:#3E3E3C;margin-bottom:20px;margin-top:-15px;">Bienvenue,</div>
+
+            <!-- KPIs -->
+            <div style="background:#fff;border:1px solid #E5E5E5;border-radius:8px;padding:20px 24px;margin-bottom:24px;">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">CA Total (depuis 1er Jan.)</div>
+                        <div class="stat-value">2 309 k€</div>
+                        <div class="stat-trend" style="color:#C23934;">↘ -1% vs N-1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Marge Brute</div>
+                        <div class="stat-value">739 k€</div>
+                        <div class="stat-trend" style="color:#54698D;">Taux : 32%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Visites</div>
+                        <div class="stat-value">25</div>
+                        <div class="stat-trend" style="color:#54698D;">92 350€ moy/visite</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Panier Moyen</div>
+                        <div class="stat-value">92 360€</div>
+                        <div class="stat-trend" style="color:#C23934;">↘ -2% vs N-1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Pipeline</div>
+                        <div class="stat-value">774 k€</div>
+                        <div class="stat-trend" style="color:#0070D2;">21 actives</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Couverture</div>
+                        <div class="stat-value">0.9</div>
+                        <div class="stat-trend" style="color:#54698D;">18 / 20 clients</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corps : 2 colonnes -->
+            <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+
+                <!-- Équipes commerciales -->
+                <div>
+                    <div class="section-title">Équipes commerciales</div>
+                    <div class="data-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vendeur</th>
+                                    <th style="text-align:center;">Mvts</th>
+                                    <th style="text-align:center;">V/mois</th>
+                                    <th style="text-align:center;">V/cli</th>
+                                    <th style="text-align:right;">Pipeline</th>
+                                    <th style="text-align:center;">Transfo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Lucas Reynaud</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">ATC — Lyon Est</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">7</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">1.3</td>
+                                    <td style="text-align:right;font-weight:500;">105 k€</td>
+                                    <td style="text-align:center;">
+                                        <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">17%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Emma Bertrand</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">ATC — Savoie</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">5</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">1.0</td>
+                                    <td style="text-align:right;font-weight:500;">165 k€</td>
+                                    <td style="text-align:center;">
+                                        <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">17%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Thomas Girard</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">VTC — Drôme-Ardèche</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">4</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">1.0</td>
+                                    <td style="text-align:right;font-weight:500;">142 k€</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Julie Marchand</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">VTC — Loire-Isère</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">3</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">1.0</td>
+                                    <td style="text-align:right;font-weight:500;">60 k€</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Nicolas Duval</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">RA — Nord-Isère</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">3</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">0.7</td>
+                                    <td style="text-align:right;font-weight:500;">175 k€</td>
+                                    <td style="text-align:center;">
+                                        <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">20%</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:600;color:#3E3E3C;">Sarah Lefèvre</div>
+                                        <div style="font-size:11px;color:#706E6B;margin-top:2px;">RA — Ain-Beaujolais</div>
+                                    </td>
+                                    <td style="text-align:center;font-weight:500;">3</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                    <td style="text-align:center;font-weight:500;">0.7</td>
+                                    <td style="text-align:right;font-weight:500;">127 k€</td>
+                                    <td style="text-align:center;color:#706E6B;">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Alertes -->
+                <div>
+                    <div class="section-title">Alertes</div>
+                    <div class="data-card">
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#C23934;"></span>
+                            <div>
+                                <div style="font-size:13px;font-weight:600;color:#3E3E3C;">Plomberie Chauffage 26</div>
+                                <div style="font-size:12px;color:#706E6B;margin-top:2px;">CA en baisse &gt;50%</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div style="font-size:13px;font-weight:600;color:#3E3E3C;">Bâti Rhône</div>
+                                <div style="font-size:12px;color:#706E6B;margin-top:2px;">Inactif depuis 91j</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div style="font-size:13px;font-weight:600;color:#3E3E3C;">Décor &amp; Aménagement</div>
+                                <div style="font-size:12px;color:#706E6B;margin-top:2px;">Inactif depuis 148j</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div style="font-size:13px;font-weight:600;color:#3E3E3C;">Électricité Générale Sud</div>
+                                <div style="font-size:12px;color:#706E6B;margin-top:2px;">Inactif depuis 45j</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /grid -->
+        </div><!-- /pageAccueil -->
+
+        <!-- ── Page Équipes ── -->
+        <div id="pageEquipes" class="page-accueil" style="display:none;">
+
+            <div style="font-size:20px;font-weight:600;color:#3E3E3C;margin-bottom:20px;margin-top:-15px;">Suivi de mes équipes,</div>
+
+            <!-- Filtres -->
+            <div style="display:flex;gap:8px;margin-bottom:20px;" id="equipesFiltres">
+                <button onclick="filtrerEquipes('Tous', this)" style="padding:8px 18px;border-radius:999px;border:1px solid var(--red);background:var(--red);color:#fff;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;">Tous</button>
+                <button onclick="filtrerEquipes('ATC', this)" style="padding:8px 18px;border-radius:999px;border:1.5px solid var(--gray-300);background:#fff;color:#555;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;">ATC</button>
+                <button onclick="filtrerEquipes('VTC', this)" style="padding:8px 18px;border-radius:999px;border:1.5px solid var(--gray-300);background:#fff;color:#555;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;">VTC</button>
+                <button onclick="filtrerEquipes('RA', this)" style="padding:8px 18px;border-radius:999px;border:1.5px solid var(--gray-300);background:#fff;color:#555;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;">RA</button>
+            </div>
+
+            <!-- Tableau équipes -->
+            <div class="data-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="min-width:200px;">Vendeur</th>
+                            <th style="min-width:180px;">CA vs Objectif</th>
+                            <th style="text-align:right;">Pipeline</th>
+                            <th style="text-align:center;">Visites</th>
+                            <th style="text-align:center;">Clients</th>
+                            <th style="text-align:center;">Opportunités</th>
+                            <th style="text-align:center;">Gagnées</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipesTableBody">
+                        <!-- Lucas Reynaud — ATC -->
+                        <tr data-role="ATC">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Lucas Reynaud</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">ATC — Lyon Est</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:10px;font-weight:600;">17% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:81%;height:100%;background:#4BCA81;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#4BCA81;white-space:nowrap;">81%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">645 k€ / 750 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">105 k€</td>
+                            <td style="text-align:center;font-weight:500;">7</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;font-weight:500;">2</td>
+                            <td style="text-align:center;">
+                                <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">1</span>
+                            </td>
+                        </tr>
+                        <!-- Emma Bertrand — ATC -->
+                        <tr data-role="ATC">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Emma Bertrand</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">ATC — Savoie</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:10px;font-weight:600;">17% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:90%;height:100%;background:#4BCA81;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#4BCA81;white-space:nowrap;">90%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">800 k€ / 890 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">110 k€</td>
+                            <td style="text-align:center;font-weight:500;">5</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;font-weight:500;">5</td>
+                            <td style="text-align:center;">
+                                <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">1</span>
+                            </td>
+                        </tr>
+                        <!-- Thomas Girard — VTC -->
+                        <tr data-role="VTC">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Thomas Girard</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">VTC — Drôme-Ardèche</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#F4F4F4;color:#706E6B;border-radius:12px;font-size:10px;font-weight:600;">0% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:30%;height:100%;background:#C23934;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#C23934;white-space:nowrap;">30%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">310 k€ / 930 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">125 k€</td>
+                            <td style="text-align:center;font-weight:500;">4</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;color:#706E6B;">—</td>
+                        </tr>
+                        <!-- Julie Marchand — VTC -->
+                        <tr data-role="VTC">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Julie Marchand</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">VTC — Loire-Isère</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#FFF4E5;color:#B05A00;border-radius:12px;font-size:10px;font-weight:600;">5% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:56%;height:100%;background:#EA7600;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#EA7600;white-space:nowrap;">56%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">340 k€ / 650 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">98 k€</td>
+                            <td style="text-align:center;font-weight:500;">2</td>
+                            <td style="text-align:center;font-weight:500;">5</td>
+                            <td style="text-align:center;font-weight:500;">4</td>
+                            <td style="text-align:center;color:#706E6B;">—</td>
+                        </tr>
+                        <!-- Nicolas Duval — RA -->
+                        <tr data-role="RA">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Nicolas Duval</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">RA — Nord-Isère</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:10px;font-weight:600;">20% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:81%;height:100%;background:#4BCA81;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#4BCA81;white-space:nowrap;">81%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">645 k€ / 750 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">100 k€</td>
+                            <td style="text-align:center;font-weight:500;">6</td>
+                            <td style="text-align:center;font-weight:500;">4</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;">
+                                <span style="display:inline-block;padding:2px 10px;background:#EAF7EE;color:#1F7A3D;border-radius:12px;font-size:11px;font-weight:600;">1</span>
+                            </td>
+                        </tr>
+                        <!-- Sarah Lefèvre — RA -->
+                        <tr data-role="RA">
+                            <td>
+                                <div style="font-weight:600;color:#3E3E3C;">Sarah Lefèvre</div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:2px;">RA — Ain-Beaujolais</div>
+                                <span style="display:inline-block;margin-top:4px;padding:2px 8px;background:#F4F4F4;color:#706E6B;border-radius:12px;font-size:10px;font-weight:600;">0% transfo</span>
+                            </td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;background:#E5E5E5;border-radius:3px;overflow:hidden;">
+                                        <div style="width:56%;height:100%;background:#EA7600;border-radius:3px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:#EA7600;white-space:nowrap;">56%</span>
+                                </div>
+                                <div style="font-size:11px;color:#706E6B;margin-top:4px;">340 k€ / 650 k€</div>
+                            </td>
+                            <td style="text-align:right;font-weight:500;">105 k€</td>
+                            <td style="text-align:center;font-weight:500;">1</td>
+                            <td style="text-align:center;font-weight:500;">2</td>
+                            <td style="text-align:center;font-weight:500;">3</td>
+                            <td style="text-align:center;color:#706E6B;">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div><!-- /pageEquipes -->
+
+        <!-- ── Page Pipeline ── -->
+        <div id="pagePipeline" class="page-accueil" style="display:none;">
+
+            <div style="font-size:20px;font-weight:600;color:#3E3E3C;margin-bottom:20px;margin-top:-15px;">Pipeline des opportunités,</div>
+
+            <!-- KPIs -->
+            <div style="background:#fff;border:1px solid #E5E5E5;border-radius:8px;padding:20px 24px;margin-bottom:24px;">
+                <div class="quick-stats" style="justify-content:flex-start;gap:48px;">
+                    <div class="stat-item" style="align-items:flex-start;">
+                        <div class="stat-label">Pipeline total</div>
+                        <div class="stat-value">774 k€</div>
+                        <div class="stat-trend" style="color:#0070D2;">21 actives</div>
+                    </div>
+                    <div class="stat-item" style="align-items:flex-start;">
+                        <div class="stat-label">Actives</div>
+                        <div class="stat-value">21</div>
+                        <div class="stat-trend" style="color:#54698D;">en cours de traitement</div>
+                    </div>
+                    <div class="stat-item" style="align-items:flex-start;">
+                        <div class="stat-label">Gagnées</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-trend" style="color:#1F7A3D;">ce trimestre</div>
+                    </div>
+                    <div class="stat-item" style="align-items:flex-start;">
+                        <div class="stat-label">Perdues</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-trend" style="color:#C23934;">ce trimestre</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanban -->
+            <div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:16px;align-items:flex-start;">
+
+                <!-- FROID -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:#54698D;color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Froid</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">5</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Travaux Pro 26</span>
+                                <span style="font-size:12px;font-weight:700;color:#54698D;">15 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Isol'Montagne</span>
+                                <span style="font-size:12px;font-weight:700;color:#54698D;">18 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Maçon Ardèche</span>
+                                <span style="font-size:12px;font-weight:700;color:#54698D;">20 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Bâti Loire</span>
+                                <span style="font-size:12px;font-weight:700;color:#54698D;">22 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Julie Marchand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Sols &amp; Carreaux</span>
+                                <span style="font-size:12px;font-weight:700;color:#54698D;">15 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TIÈDE -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:#EA7600;color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Tiède</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">7</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Plâtrerie Dubois</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">20 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Lucas Reynaud</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Endutech</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">25 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Interbâti</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">28 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Julie Marchand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Rénov Pro</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">22 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Nicolas Duval</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Isolation 2A</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">30 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Sols &amp; Surfaces</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">25 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Construction Lacour</span>
+                                <span style="font-size:12px;font-weight:700;color:#EA7600;">25 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Emma Bertrand</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHAUD -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:var(--red);color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Chaud</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">7</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Dupont Construction</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">45 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Lucas Reynaud</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Bâti Rhône</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">60 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Emma Bertrand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Maçonnerie Martin</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">40 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Groupe Perrin</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">35 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Julie Marchand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Electrolab</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">50 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Nicolas Duval</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Constructions Réunies</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">50 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Plâtrier du Rhône</span>
+                                <span style="font-size:12px;font-weight:700;color:var(--red);">30 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Lucas Reynaud</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EN COURS -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:#0070D2;color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">En cours</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">2</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Batimontagne</span>
+                                <span style="font-size:12px;font-weight:700;color:#0070D2;">99 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Emma Bertrand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Artisan Carrelage Plus</span>
+                                <span style="font-size:12px;font-weight:700;color:#0070D2;">100 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Nicolas Duval</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GAGNÉE -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:#1F7A3D;color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Gagnée</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">3</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Décor &amp; Aménagement</span>
+                                <span style="font-size:12px;font-weight:700;color:#1F7A3D;">85 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Lucas Reynaud</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">BTP Express</span>
+                                <span style="font-size:12px;font-weight:700;color:#1F7A3D;">62 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Ciment &amp; Co</span>
+                                <span style="font-size:12px;font-weight:700;color:#1F7A3D;">45 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERDUE -->
+                <div style="min-width:200px;flex:1;">
+                    <div style="background:#706E6B;color:#fff;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;">Perdue</span>
+                        <span style="background:rgba(255,255,255,0.2);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">5</span>
+                    </div>
+                    <div style="background:#F4F6F9;border:1px solid #E5E5E5;border-top:none;border-radius:0 0 8px 8px;padding:10px;display:flex;flex-direction:column;gap:8px;">
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Renovation Plus</span>
+                                <span style="font-size:12px;font-weight:700;color:#706E6B;">30 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Emma Bertrand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Chantiers Lombard</span>
+                                <span style="font-size:12px;font-weight:700;color:#706E6B;">45 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Julie Marchand</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Maçon Pro</span>
+                                <span style="font-size:12px;font-weight:700;color:#706E6B;">28 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Nicolas Duval</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Isol'Tech</span>
+                                <span style="font-size:12px;font-weight:700;color:#706E6B;">35 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Thomas Girard</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #E5E5E5;border-radius:6px;padding:10px 12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                <span style="font-size:12px;font-weight:600;color:#3E3E3C;">Pro Bâtiment</span>
+                                <span style="font-size:12px;font-weight:700;color:#706E6B;">22 k€</span>
+                            </div>
+                            <div style="font-size:11px;color:#706E6B;">Sarah Lefèvre</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /kanban -->
+        </div><!-- /pagePipeline -->
+
+    </div>
+
+    </div><!-- .app-wrapper -->
+
+    <script>
+        function toggleRA() {
+            var panel = document.getElementById('raPanel');
+            var toggle = document.getElementById('raToggle');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                toggle.textContent = 'Recherche avancée ▴';
+            } else {
+                panel.style.display = 'none';
+                toggle.textContent = 'Recherche avancée ▾';
+            }
+        }
+
+        function openHelpModal() {}
+
+        function showPage(page, el) {
+            ['pageAccueil', 'pageEquipes', 'pagePipeline'].forEach(function(id) {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.querySelectorAll('.sidebar-icon').forEach(function(i) { i.classList.remove('active'); });
+            var map = { accueil: 'pageAccueil', equipes: 'pageEquipes', pipeline: 'pagePipeline' };
+            if (map[page]) document.getElementById(map[page]).style.display = 'block';
+            if (el) el.classList.add('active');
+        }
+
+        function filtrerEquipes(role, btn) {
+            document.querySelectorAll('#equipesFiltres button').forEach(function(b) {
+                b.style.background = '#fff';
+                b.style.color = '#555';
+                b.style.borderColor = 'var(--gray-300)';
+            });
+            btn.style.background = 'var(--red)';
+            btn.style.color = '#fff';
+            btn.style.borderColor = 'var(--red)';
+            document.querySelectorAll('#equipesTableBody tr').forEach(function(row) {
+                row.style.display = (role === 'Tous' || row.dataset.role === role) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
