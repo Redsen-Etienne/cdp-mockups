@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Manager — BME France CDP</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            color: var(--black);
+            line-height: 1.5;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            zoom: 0.8;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Accueil page ── */
+        .page-accueil {
+            padding: 28px 32px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #F4F6F9;
+            min-height: calc(100vh - 54px);
+        }
+
+        .quick-stats {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0 8px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .stat-value {
+            font-family: 'DM Serif Display', Georgia, serif;
+            font-size: 24px;
+            font-weight: 400;
+            color: var(--black);
+            line-height: 1;
+            letter-spacing: -0.01em;
+        }
+
+        .stat-trend {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #54698D;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 12px;
+        }
+
+        .data-card {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #E5E5E5;
+            overflow: hidden;
+        }
+
+        .data-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-card thead tr {
+            background: #F4F6F9;
+            border-bottom: 1px solid #E5E5E5;
+        }
+
+        .data-card th {
+            padding: 10px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #54698D;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-card td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #F0F0F0;
+            color: #3E3E3C;
+            vertical-align: middle;
+        }
+
+        .data-card tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-card tbody tr:nth-child(even) {
+            background: #FAFAFA;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #F0F0F0;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        /* ── Search bar ── */
+        .search-bar-row {
+            position: relative;
+            height: 54px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 1px solid var(--gray-200);
+            margin: -14px -24px 14px -24px;
+            padding: 0 24px;
+        }
+        .search-input {
+            width: 50%;
+            box-sizing: border-box;
+            padding: 10px 18px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 999px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--black);
+            outline: none;
+            background: var(--gray-50);
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+        }
+        .search-input:focus {
+            border-color: var(--red);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255,0,40,0.08);
+        }
+        .search-ra-toggle {
+            margin-left: 14px;
+            font-size: 12px;
+            color: var(--red);
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .search-ra-toggle:hover { text-decoration: underline; }
+        .search-help-btn {
+            position: absolute;
+            right: 24px;
+            background: transparent;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3E3E3C;
+        }
+
+        /* ── Recherche avancée panel ── */
+        .ra-panel {
+            background: var(--gray-50);
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            animation: slideDown 0.2s ease;
+            margin: -14px -24px 14px -24px;
+        }
+        .ra-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .ra-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gray-600);
+            display: block;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ra-select, .ra-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 12px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--black);
+            background: var(--white);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .ra-select:focus, .ra-input:focus { border-color: var(--red); }
+        .ra-input { width: 50%; padding: 8px 10px; background: initial; }
+        .ra-range-wrap { display: flex; gap: 6px; align-items: center; }
+        .ra-range-sep { font-size: 11px; color: var(--gray-500); font-weight: 500; }
+        .ra-checkbox-group { font-size: 11px; color: var(--gray-600); font-weight: 500; }
+        .ra-checkbox-group input[type="checkbox"] { accent-color: var(--red); }
+        .ra-actions { display: flex; gap: 10px; justify-content: flex-end; align-items: center; }
+        .ra-btn-reset {
+            padding: 8px 16px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            background: var(--white);
+            color: var(--gray-700);
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .ra-btn-reset:hover { border-color: var(--gray-400); background: var(--gray-50); }
+        .ra-btn-search {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            background: var(--red);
+            color: var(--white);
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(255,0,40,0.25);
+            transition: background 0.15s;
+        }
+        .ra-btn-search:hover { background: var(--red-dark); }
+
+        /* ── Page layout ── */
+        .page-title { font-size: 20px; font-weight: 600; color: #3E3E3C; margin-bottom: 20px; margin-top: -15px; }
+        .kpi-card { background: #fff; border: 1px solid #E5E5E5; border-radius: 8px; padding: 20px 24px; margin-bottom: 24px; }
+        .two-col-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+        .filters-row { display: flex; gap: 8px; margin-bottom: 20px; }
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1.5px solid var(--gray-300);
+            background: #fff;
+            color: #555;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+        }
+        .filter-btn.active { border-color: var(--red); background: var(--red); color: #fff; }
+
+        /* ── Table cells ── */
+        .vendor-name { font-weight: 600; color: #3E3E3C; }
+        .vendor-role { font-size: 11px; color: #706E6B; margin-top: 2px; }
+        .cell-num { text-align: center; font-weight: 500; }
+        .cell-amount { text-align: right; font-weight: 500; }
+        .cell-muted { text-align: center; color: #706E6B; }
+
+        /* ── Badges ── */
+        .badge-transfo {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .badge-transfo.green { background: #EAF7EE; color: #1F7A3D; }
+        .badge-transfo.orange { background: #FFF4E5; color: #B05A00; }
+        .badge-transfo.gray { background: #F4F4F4; color: #706E6B; }
+        .badge-won {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #EAF7EE;
+            color: #1F7A3D;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* ── Progress bars ── */
+        .prog-wrap { display: flex; align-items: center; gap: 8px; }
+        .prog-track { flex: 1; height: 6px; background: #E5E5E5; border-radius: 3px; overflow: hidden; }
+        .prog-fill { height: 100%; border-radius: 3px; }
+        .prog-pct { font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .prog-sub { font-size: 11px; color: #706E6B; margin-top: 4px; }
+
+        /* ── Alerts ── */
+        .alert-title { font-size: 13px; font-weight: 600; color: #3E3E3C; }
+        .alert-desc { font-size: 12px; color: #706E6B; margin-top: 2px; }
+
+        /* ── Pipeline KPI ── */
+        .quick-stats.left { justify-content: flex-start; gap: 48px; }
+        .stat-item.left { align-items: flex-start; }
+
+        /* ── Kanban ── */
+        .kanban-wrap { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 16px; align-items: flex-start; }
+        .kanban-col { min-width: 200px; flex: 1; }
+        .kanban-header {
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .kanban-header-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+        .kanban-count { background: rgba(255,255,255,0.2); border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+        .kanban-body {
+            background: #F4F6F9;
+            border: 1px solid #E5E5E5;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .kanban-card { background: #fff; border: 1px solid #E5E5E5; border-radius: 6px; padding: 10px 12px; }
+        .kanban-card-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .kanban-card-title { font-size: 12px; font-weight: 600; color: #3E3E3C; }
+        .kanban-card-amount { font-size: 12px; font-weight: 700; }
+        .kanban-card-vendor { font-size: 11px; color: #706E6B; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+        <div class="sidebar-logo" style="font-size:11px;letter-spacing:1px;">CDP</div>
+        <div class="sidebar-icon light active" title="Accueil" style="margin-top:4px;" onclick="showPage('accueil', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+                <polyline points="9 21 9 12 15 12 15 21"/>
+            </svg><span class="sidebar-label">Accueil</span>
+        </div>
+        <div class="sidebar-icon light" title="Équipes" style="margin-top:4px;" onclick="showPage('equipes', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <line x1="8" y1="14" x2="8" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="12" y1="14" x2="12" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="16" y1="14" x2="16" y2="14" stroke-linecap="round" stroke-width="3"/>
+                <line x1="8" y1="18" x2="8" y2="18" stroke-linecap="round" stroke-width="3"/>
+                <line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round" stroke-width="3"/>
+            </svg><span class="sidebar-label">Équipes</span>
+        </div>
+        <div class="sidebar-icon light" title="Clients" style="margin-top:8px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 2h13a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+                <line x1="19" y1="8" x2="21" y2="8"/>
+                <line x1="19" y1="12" x2="21" y2="12"/>
+                <line x1="19" y1="16" x2="21" y2="16"/>
+                <circle cx="10" cy="9" r="3"/>
+                <path d="M6 20c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
+            </svg><span class="sidebar-label">Clients</span>
+        </div>
+        <div class="sidebar-icon light" title="Dashboard" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="9" y1="17" x2="8" y2="21"/>
+                <line x1="15" y1="17" x2="16" y2="21"/>
+                <line x1="7" y1="21" x2="17" y2="21"/>
+                <polyline points="5 13 7.5 10 10 12 13 8"/>
+                <path d="M17 7 A3 3 0 1 1 14.5 9.5"/>
+                <line x1="17" y1="7" x2="17" y2="10"/>
+                <line x1="17" y1="10" x2="14.5" y2="9.5"/>
+            </svg><span class="sidebar-label">Dashboard</span>
+        </div>
+        <div class="sidebar-icon light" title="Pipeline commercial" style="margin-top:4px;" onclick="showPage('pipeline', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 3 L20 3 L14 11 L14 19 L10 21 L10 11 Z"/>
+                <line x1="4" y1="7" x2="8" y2="7"/>
+                <line x1="16" y1="7" x2="20" y2="7"/>
+            </svg><span class="sidebar-label">Pipeline</span>
+        </div>
+        <div class="sidebar-icon light" title="Prospects / Cibles" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="7"/>
+                <line x1="12" y1="2" x2="12" y2="5"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+                <line x1="2" y1="12" x2="5" y2="12"/>
+                <line x1="19" y1="12" x2="22" y2="12"/>
+                <circle cx="12" cy="10" r="2"/>
+                <path d="M8.5 17c0-2 1.6-3.5 3.5-3.5s3.5 1.5 3.5 3.5"/>
+            </svg><span class="sidebar-label">Prospects</span>
+        </div>
+        <div class="sidebar-icon light" title="Visites" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2C8 2 5 5 5 9c0 4.5 5 11 7 13 2-2 7-8.5 7-13 0-4-3-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+            </svg><span class="sidebar-label">Visites</span>
+        </div>
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-icon" title="Paramètres">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg><span class="sidebar-label">Paramètres</span>
+        </div>
+        <div class="sidebar-icon" title="Déconnexion" style="margin-bottom:4px;" onclick="window.location.href='login.html'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg><span class="sidebar-label">Déconnexion</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="searchArea">
+        <!-- Header -->
+        <div class="header">
+            <!-- Barre de recherche -->
+            <div class="search-bar-row">
+                <input type="text" placeholder="Rechercher un compte, un contact, un chantier..." class="search-input">
+                <span id="raToggle" class="search-ra-toggle" onclick="toggleRA()">Recherche avancée ▾</span>
+                <button onclick="openHelpModal()" class="search-help-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"></path>
+                        <line x1="7" y1="7" x2="17" y2="7"></line>
+                        <line x1="7" y1="11" x2="15" y2="11"></line>
+                        <line x1="7" y1="15" x2="13" y2="15"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Panneau Recherche Avancée -->
+            <div id="raPanel" class="ra-panel" style="display:none;">
+                <div class="ra-grid">
+
+                    <div>
+                    <label class="ra-label">Secteur d'activité</label>
+                    <select class="ra-select">
+                        <option value="">Tous les secteurs</option>
+                        <option>Plâtrerie / Isolation</option>
+                        <option>Peinture / Décoration</option>
+                        <option>Gros œuvre</option>
+                        <option>Menuiserie / Charpente</option>
+                        <option>Électricité / Plomberie</option>
+                        <option>Multi-corps d'état</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">Statut client</label>
+                    <select class="ra-select">
+                        <option value="">Tous</option>
+                        <option>Actif</option>
+                        <option>Inactif</option>
+                        <option>Prospect</option>
+                        <option>Suspendu</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">ATC référent</label>
+                    <select class="ra-select">
+                        <option value="">Tous les ATC</option>
+                        <option>Sophie Martin</option>
+                        <option>Marc Dupuis</option>
+                        <option>Julie Bernard</option>
+                        <option>Thomas Laurent</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">Agence de rattachement</label>
+                    <select class="ra-select">
+                        <option value="">Toutes les agences</option>
+                        <option>Paris Sud</option>
+                        <option>Ivry-sur-Seine</option>
+                        <option>Boulogne-Billancourt</option>
+                        <option>Saint-Denis</option>
+                        <option>Créteil</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">CA annuel (€)</label>
+                    <div class="ra-range-wrap">
+                        <input type="number" placeholder="Min" class="ra-input">
+                        <span class="ra-range-sep">à</span>
+                        <input type="number" placeholder="Max" class="ra-input">
+                    </div>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">Famille produits</label>
+                    <select class="ra-select">
+                        <option value="">Toutes familles</option>
+                        <option>Plâtrerie</option>
+                        <option>Isolation</option>
+                        <option>Outillage</option>
+                        <option>Peinture</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">Groupement / Réseau</label>
+                    <select class="ra-select">
+                        <option value="">Tous</option>
+                        <option>FFB</option>
+                        <option>CAPEB</option>
+                        <option>Groupement Indépendant</option>
+                        <option>Non affilié</option>
+                    </select>
+                    </div>
+
+                    <div>
+                    <label class="ra-label">Dernière visite</label>
+                    <select class="ra-select">
+                        <option value="">Toutes périodes</option>
+                        <option>Cette semaine</option>
+                        <option>Ce mois</option>
+                        <option>Il y a moins de 3 mois</option>
+                        <option>Il y a plus de 3 mois</option>
+                        <option>Jamais visité</option>
+                    </select>
+                    </div>
+
+                </div>
+
+                <div class="ra-actions">
+                    <span class="ra-checkbox-group">
+                    <input type="checkbox" id="raStock"> Stock client actif &nbsp;
+                    <input type="checkbox" id="raAdherent"> Adhérent &nbsp;
+                    <input type="checkbox" id="raNps"> NPS &gt; 0
+                    </span>
+                    <button onclick="toggleRA()" class="ra-btn-reset">Réinitialiser</button>
+                    <button class="ra-btn-search">Lancer la recherche</button>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- ── Page Accueil Manager ── -->
+        <div id="pageAccueil" class="page-accueil">
+
+            <!-- Titre -->
+            <div class="page-title">Bienvenue,</div>
+
+            <!-- KPIs -->
+            <div class="kpi-card">
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">CA Total (depuis 1er Jan.)</div>
+                        <div class="stat-value">2 309 k€</div>
+                        <div class="stat-trend" style="color:#C23934;">↘ -1% vs N-1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Marge Brute</div>
+                        <div class="stat-value">739 k€</div>
+                        <div class="stat-trend" style="color:#54698D;">Taux : 32%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Visites</div>
+                        <div class="stat-value">25</div>
+                        <div class="stat-trend" style="color:#54698D;">92 350€ moy/visite</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Panier Moyen</div>
+                        <div class="stat-value">92 360€</div>
+                        <div class="stat-trend" style="color:#C23934;">↘ -2% vs N-1</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Pipeline</div>
+                        <div class="stat-value">774 k€</div>
+                        <div class="stat-trend" style="color:#0070D2;">21 actives</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Couverture</div>
+                        <div class="stat-value">0.9</div>
+                        <div class="stat-trend" style="color:#54698D;">18 / 20 clients</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corps : 2 colonnes -->
+            <div class="two-col-grid">
+
+                <!-- Équipes commerciales -->
+                <div>
+                    <div class="section-title">Équipes commerciales</div>
+                    <div class="data-card">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Vendeur</th>
+                                    <th style="text-align:center;">Mvts</th>
+                                    <th style="text-align:center;">V/mois</th>
+                                    <th style="text-align:center;">V/cli</th>
+                                    <th style="text-align:right;">Pipeline</th>
+                                    <th style="text-align:center;">Transfo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Lucas Reynaud</div>
+                                        <div class="vendor-role">ATC — Lyon Est</div>
+                                    </td>
+                                    <td class="cell-num">7</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">1.3</td>
+                                    <td class="cell-amount">105 k€</td>
+                                    <td class="cell-num"><span class="badge-won">17%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Emma Bertrand</div>
+                                        <div class="vendor-role">ATC — Savoie</div>
+                                    </td>
+                                    <td class="cell-num">5</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">1.0</td>
+                                    <td class="cell-amount">165 k€</td>
+                                    <td class="cell-num"><span class="badge-won">17%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Thomas Girard</div>
+                                        <div class="vendor-role">VTC — Drôme-Ardèche</div>
+                                    </td>
+                                    <td class="cell-num">4</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">1.0</td>
+                                    <td class="cell-amount">142 k€</td>
+                                    <td class="cell-muted">—</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Julie Marchand</div>
+                                        <div class="vendor-role">VTC — Loire-Isère</div>
+                                    </td>
+                                    <td class="cell-num">3</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">1.0</td>
+                                    <td class="cell-amount">60 k€</td>
+                                    <td class="cell-muted">—</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Nicolas Duval</div>
+                                        <div class="vendor-role">RA — Nord-Isère</div>
+                                    </td>
+                                    <td class="cell-num">3</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">0.7</td>
+                                    <td class="cell-amount">175 k€</td>
+                                    <td class="cell-num"><span class="badge-won">20%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="vendor-name">Sarah Lefèvre</div>
+                                        <div class="vendor-role">RA — Ain-Beaujolais</div>
+                                    </td>
+                                    <td class="cell-num">3</td>
+                                    <td class="cell-muted">—</td>
+                                    <td class="cell-num">0.7</td>
+                                    <td class="cell-amount">127 k€</td>
+                                    <td class="cell-muted">—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Alertes -->
+                <div>
+                    <div class="section-title">Alertes</div>
+                    <div class="data-card">
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#C23934;"></span>
+                            <div>
+                                <div class="alert-title">Plomberie Chauffage 26</div>
+                                <div class="alert-desc">CA en baisse &gt;50%</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div class="alert-title">Bâti Rhône</div>
+                                <div class="alert-desc">Inactif depuis 91j</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div class="alert-title">Décor &amp; Aménagement</div>
+                                <div class="alert-desc">Inactif depuis 148j</div>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <span class="alert-dot" style="background:#EA7600;"></span>
+                            <div>
+                                <div class="alert-title">Électricité Générale Sud</div>
+                                <div class="alert-desc">Inactif depuis 45j</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /grid -->
+        </div><!-- /pageAccueil -->
+
+        <!-- ── Page Équipes ── -->
+        <div id="pageEquipes" class="page-accueil" style="display:none;">
+
+            <div class="page-title">Suivi de mes équipes,</div>
+
+            <!-- Filtres -->
+            <div class="filters-row" id="equipesFiltres">
+                <button onclick="filtrerEquipes('Tous', this)" class="filter-btn active">Tous</button>
+                <button onclick="filtrerEquipes('ATC', this)" class="filter-btn">ATC</button>
+                <button onclick="filtrerEquipes('VTC', this)" class="filter-btn">VTC</button>
+                <button onclick="filtrerEquipes('RA', this)" class="filter-btn">RA</button>
+            </div>
+
+            <!-- Tableau équipes -->
+            <div class="data-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="min-width:200px;">Vendeur</th>
+                            <th style="min-width:180px;">CA vs Objectif</th>
+                            <th style="text-align:right;">Pipeline</th>
+                            <th style="text-align:center;">Visites</th>
+                            <th style="text-align:center;">Clients</th>
+                            <th style="text-align:center;">Opportunités</th>
+                            <th style="text-align:center;">Gagnées</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipesTableBody">
+                        <!-- Lucas Reynaud — ATC -->
+                        <tr data-role="ATC">
+                            <td>
+                                <div class="vendor-name">Lucas Reynaud</div>
+                                <div class="vendor-role">ATC — Lyon Est</div>
+                                <span class="badge-transfo green">17% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:81%;background:#4BCA81;"></div></div>
+                                    <span class="prog-pct" style="color:#4BCA81;">81%</span>
+                                </div>
+                                <div class="prog-sub">645 k€ / 750 k€</div>
+                            </td>
+                            <td class="cell-amount">105 k€</td>
+                            <td class="cell-num">7</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-num">2</td>
+                            <td class="cell-num"><span class="badge-won">1</span></td>
+                        </tr>
+                        <!-- Emma Bertrand — ATC -->
+                        <tr data-role="ATC">
+                            <td>
+                                <div class="vendor-name">Emma Bertrand</div>
+                                <div class="vendor-role">ATC — Savoie</div>
+                                <span class="badge-transfo green">17% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:90%;background:#4BCA81;"></div></div>
+                                    <span class="prog-pct" style="color:#4BCA81;">90%</span>
+                                </div>
+                                <div class="prog-sub">800 k€ / 890 k€</div>
+                            </td>
+                            <td class="cell-amount">110 k€</td>
+                            <td class="cell-num">5</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-num">5</td>
+                            <td class="cell-num"><span class="badge-won">1</span></td>
+                        </tr>
+                        <!-- Thomas Girard — VTC -->
+                        <tr data-role="VTC">
+                            <td>
+                                <div class="vendor-name">Thomas Girard</div>
+                                <div class="vendor-role">VTC — Drôme-Ardèche</div>
+                                <span class="badge-transfo gray">0% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:30%;background:#C23934;"></div></div>
+                                    <span class="prog-pct" style="color:#C23934;">30%</span>
+                                </div>
+                                <div class="prog-sub">310 k€ / 930 k€</div>
+                            </td>
+                            <td class="cell-amount">125 k€</td>
+                            <td class="cell-num">4</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-muted">—</td>
+                        </tr>
+                        <!-- Julie Marchand — VTC -->
+                        <tr data-role="VTC">
+                            <td>
+                                <div class="vendor-name">Julie Marchand</div>
+                                <div class="vendor-role">VTC — Loire-Isère</div>
+                                <span class="badge-transfo orange">5% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:56%;background:#EA7600;"></div></div>
+                                    <span class="prog-pct" style="color:#EA7600;">56%</span>
+                                </div>
+                                <div class="prog-sub">340 k€ / 650 k€</div>
+                            </td>
+                            <td class="cell-amount">98 k€</td>
+                            <td class="cell-num">2</td>
+                            <td class="cell-num">5</td>
+                            <td class="cell-num">4</td>
+                            <td class="cell-muted">—</td>
+                        </tr>
+                        <!-- Nicolas Duval — RA -->
+                        <tr data-role="RA">
+                            <td>
+                                <div class="vendor-name">Nicolas Duval</div>
+                                <div class="vendor-role">RA — Nord-Isère</div>
+                                <span class="badge-transfo green">20% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:81%;background:#4BCA81;"></div></div>
+                                    <span class="prog-pct" style="color:#4BCA81;">81%</span>
+                                </div>
+                                <div class="prog-sub">645 k€ / 750 k€</div>
+                            </td>
+                            <td class="cell-amount">100 k€</td>
+                            <td class="cell-num">6</td>
+                            <td class="cell-num">4</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-num"><span class="badge-won">1</span></td>
+                        </tr>
+                        <!-- Sarah Lefèvre — RA -->
+                        <tr data-role="RA">
+                            <td>
+                                <div class="vendor-name">Sarah Lefèvre</div>
+                                <div class="vendor-role">RA — Ain-Beaujolais</div>
+                                <span class="badge-transfo gray">0% transfo</span>
+                            </td>
+                            <td>
+                                <div class="prog-wrap">
+                                    <div class="prog-track"><div class="prog-fill" style="width:56%;background:#EA7600;"></div></div>
+                                    <span class="prog-pct" style="color:#EA7600;">56%</span>
+                                </div>
+                                <div class="prog-sub">340 k€ / 650 k€</div>
+                            </td>
+                            <td class="cell-amount">105 k€</td>
+                            <td class="cell-num">1</td>
+                            <td class="cell-num">2</td>
+                            <td class="cell-num">3</td>
+                            <td class="cell-muted">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div><!-- /pageEquipes -->
+
+        <!-- ── Page Pipeline ── -->
+        <div id="pagePipeline" class="page-accueil" style="display:none;">
+
+            <div class="page-title">Pipeline des opportunités,</div>
+
+            <!-- KPIs -->
+            <div class="kpi-card">
+                <div class="quick-stats left">
+                    <div class="stat-item left">
+                        <div class="stat-label">Pipeline total</div>
+                        <div class="stat-value">774 k€</div>
+                        <div class="stat-trend" style="color:#0070D2;">21 actives</div>
+                    </div>
+                    <div class="stat-item left">
+                        <div class="stat-label">Actives</div>
+                        <div class="stat-value">21</div>
+                        <div class="stat-trend" style="color:#54698D;">en cours de traitement</div>
+                    </div>
+                    <div class="stat-item left">
+                        <div class="stat-label">Gagnées</div>
+                        <div class="stat-value">3</div>
+                        <div class="stat-trend" style="color:#1F7A3D;">ce trimestre</div>
+                    </div>
+                    <div class="stat-item left">
+                        <div class="stat-label">Perdues</div>
+                        <div class="stat-value">5</div>
+                        <div class="stat-trend" style="color:#C23934;">ce trimestre</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kanban -->
+            <div class="kanban-wrap">
+
+                <!-- FROID -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:#54698D;">
+                        <span class="kanban-header-label">Froid</span>
+                        <span class="kanban-count">5</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Travaux Pro 26</span><span class="kanban-card-amount" style="color:#54698D;">15 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Isol'Montagne</span><span class="kanban-card-amount" style="color:#54698D;">18 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Maçon Ardèche</span><span class="kanban-card-amount" style="color:#54698D;">20 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Bâti Loire</span><span class="kanban-card-amount" style="color:#54698D;">22 k€</span></div><div class="kanban-card-vendor">Julie Marchand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Sols &amp; Carreaux</span><span class="kanban-card-amount" style="color:#54698D;">15 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                    </div>
+                </div>
+
+                <!-- TIÈDE -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:#EA7600;">
+                        <span class="kanban-header-label">Tiède</span>
+                        <span class="kanban-count">7</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Plâtrerie Dubois</span><span class="kanban-card-amount" style="color:#EA7600;">20 k€</span></div><div class="kanban-card-vendor">Lucas Reynaud</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Endutech</span><span class="kanban-card-amount" style="color:#EA7600;">25 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Interbâti</span><span class="kanban-card-amount" style="color:#EA7600;">28 k€</span></div><div class="kanban-card-vendor">Julie Marchand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Rénov Pro</span><span class="kanban-card-amount" style="color:#EA7600;">22 k€</span></div><div class="kanban-card-vendor">Nicolas Duval</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Isolation 2A</span><span class="kanban-card-amount" style="color:#EA7600;">30 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Sols &amp; Surfaces</span><span class="kanban-card-amount" style="color:#EA7600;">25 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Construction Lacour</span><span class="kanban-card-amount" style="color:#EA7600;">25 k€</span></div><div class="kanban-card-vendor">Emma Bertrand</div></div>
+                    </div>
+                </div>
+
+                <!-- CHAUD -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:var(--red);">
+                        <span class="kanban-header-label">Chaud</span>
+                        <span class="kanban-count">7</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Dupont Construction</span><span class="kanban-card-amount" style="color:var(--red);">45 k€</span></div><div class="kanban-card-vendor">Lucas Reynaud</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Bâti Rhône</span><span class="kanban-card-amount" style="color:var(--red);">60 k€</span></div><div class="kanban-card-vendor">Emma Bertrand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Maçonnerie Martin</span><span class="kanban-card-amount" style="color:var(--red);">40 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Groupe Perrin</span><span class="kanban-card-amount" style="color:var(--red);">35 k€</span></div><div class="kanban-card-vendor">Julie Marchand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Electrolab</span><span class="kanban-card-amount" style="color:var(--red);">50 k€</span></div><div class="kanban-card-vendor">Nicolas Duval</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Constructions Réunies</span><span class="kanban-card-amount" style="color:var(--red);">50 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Plâtrier du Rhône</span><span class="kanban-card-amount" style="color:var(--red);">30 k€</span></div><div class="kanban-card-vendor">Lucas Reynaud</div></div>
+                    </div>
+                </div>
+
+                <!-- EN COURS -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:#0070D2;">
+                        <span class="kanban-header-label">En cours</span>
+                        <span class="kanban-count">2</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Batimontagne</span><span class="kanban-card-amount" style="color:#0070D2;">99 k€</span></div><div class="kanban-card-vendor">Emma Bertrand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Artisan Carrelage Plus</span><span class="kanban-card-amount" style="color:#0070D2;">100 k€</span></div><div class="kanban-card-vendor">Nicolas Duval</div></div>
+                    </div>
+                </div>
+
+                <!-- GAGNÉE -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:#1F7A3D;">
+                        <span class="kanban-header-label">Gagnée</span>
+                        <span class="kanban-count">3</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Décor &amp; Aménagement</span><span class="kanban-card-amount" style="color:#1F7A3D;">85 k€</span></div><div class="kanban-card-vendor">Lucas Reynaud</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">BTP Express</span><span class="kanban-card-amount" style="color:#1F7A3D;">62 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Ciment &amp; Co</span><span class="kanban-card-amount" style="color:#1F7A3D;">45 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                    </div>
+                </div>
+
+                <!-- PERDUE -->
+                <div class="kanban-col">
+                    <div class="kanban-header" style="background:#706E6B;">
+                        <span class="kanban-header-label">Perdue</span>
+                        <span class="kanban-count">5</span>
+                    </div>
+                    <div class="kanban-body">
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Renovation Plus</span><span class="kanban-card-amount" style="color:#706E6B;">30 k€</span></div><div class="kanban-card-vendor">Emma Bertrand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Chantiers Lombard</span><span class="kanban-card-amount" style="color:#706E6B;">45 k€</span></div><div class="kanban-card-vendor">Julie Marchand</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Maçon Pro</span><span class="kanban-card-amount" style="color:#706E6B;">28 k€</span></div><div class="kanban-card-vendor">Nicolas Duval</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Isol'Tech</span><span class="kanban-card-amount" style="color:#706E6B;">35 k€</span></div><div class="kanban-card-vendor">Thomas Girard</div></div>
+                        <div class="kanban-card"><div class="kanban-card-hd"><span class="kanban-card-title">Pro Bâtiment</span><span class="kanban-card-amount" style="color:#706E6B;">22 k€</span></div><div class="kanban-card-vendor">Sarah Lefèvre</div></div>
+                    </div>
+                </div>
+
+            </div><!-- /kanban -->
+        </div><!-- /pagePipeline -->
+
+    </div>
+
+    </div><!-- .app-wrapper -->
+
+    <script>
+        function toggleRA() {
+            var panel = document.getElementById('raPanel');
+            var toggle = document.getElementById('raToggle');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                toggle.textContent = 'Recherche avancée ▴';
+            } else {
+                panel.style.display = 'none';
+                toggle.textContent = 'Recherche avancée ▾';
+            }
+        }
+
+        function openHelpModal() {}
+
+        function showPage(page, el) {
+            ['pageAccueil', 'pageEquipes', 'pagePipeline'].forEach(function(id) {
+                document.getElementById(id).style.display = 'none';
+            });
+            document.querySelectorAll('.sidebar-icon').forEach(function(i) { i.classList.remove('active'); });
+            var map = { accueil: 'pageAccueil', equipes: 'pageEquipes', pipeline: 'pagePipeline' };
+            if (map[page]) document.getElementById(map[page]).style.display = 'block';
+            if (el) el.classList.add('active');
+        }
+
+        function filtrerEquipes(role, btn) {
+            document.querySelectorAll('#equipesFiltres button').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            document.querySelectorAll('#equipesTableBody tr').forEach(function(row) {
+                row.style.display = (role === 'Tous' || row.dataset.role === role) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
