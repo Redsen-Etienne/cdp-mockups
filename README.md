@@ -17,18 +17,6 @@ Aucune installation requise. Ouvrir directement dans un navigateur :
 
 ```
 Version propre 4/CDP_login.html
-```
-
----
-
-## Comptes de démonstration
-
-| Rôle                       |                   Email | Mot de passe |
-|---                         |                      ---|           ---|
-| ATC                        | thomas.girard@raboni.fr |      atc2000 |
-| Manager                    | j.manager@raboni.fr     |  manager2000 |
-| Comptoir                   | comptoir@raboni.fr      | comptoir2000 |
-| Responsable agence         | r.agence@raboni.fr      |   agence2000 |
 
 ---
 
