@@ -1,6 +1,6 @@
 # CDP BME France — Maquette interactive
 
-Maquette fonctionnelle HTML/CSS/JS du **Customer Data Platform (CDP)** de BME France, destinée à valider les concepts UX/UI avant développement.
+Maquette fonctionnelle HTML/CSS/JS du **Customer Data Platform (CDP)**, destinée à valider les concepts UX/UI avant développement.
 
 
 ---
