@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDP — Connexion</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <style>
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--black);
+            min-height: 100vh;
+            display: flex;
+            overflow: hidden;
+            zoom: 0.85;
+        }
+
+        /* ── Panneau gauche ── */
+        .left-panel {
+            width: 55%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 48px 56px;
+            overflow: hidden;
+            background: var(--black);
+        }
+
+        /* Cercles décoratifs */
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: -180px; right: -180px;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,0,40,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            bottom: -120px; left: -80px;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,0,40,0.10) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .left-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .left-logo-box {
+            width: 40px; height: 40px;
+            background: var(--red);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600; color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .left-logo-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--white);
+            letter-spacing: 0.5px;
+        }
+
+        .left-hero {
+            animation: fadeUp 0.6s 0.15s ease both;
+        }
+
+        .left-hero h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 52px;
+            line-height: 1.1;
+            color: var(--white);
+            margin-bottom: 20px;
+        }
+
+        .left-hero h1 span {
+            color: var(--red);
+        }
+
+        .left-hero p {
+            font-size: 15px;
+            color: var(--gray-400);
+            line-height: 1.7;
+            max-width: 420px;
+        }
+
+        /* Stats */
+        .left-stats {
+            display: flex;
+            gap: 32px;
+            animation: fadeUp 0.6s 0.3s ease both;
+        }
+
+        .stat {
+            border-left: 2px solid rgba(255,255,255,0.08);
+            padding-left: 16px;
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--white);
+            line-height: 1;
+        }
+
+        .stat-val span {
+            font-size: 16px;
+            color: var(--red);
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--gray-400);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Ligne décorative */
+        .left-line {
+            position: absolute;
+            bottom: 0; left: 56px;
+            width: 2px; height: 40%;
+            background: linear-gradient(to bottom, var(--red), transparent);
+            opacity: 0.4;
+        }
+
+        /* ── Panneau droit ── */
+        .right-panel {
+            width: 45%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 56px;
+            position: relative;
+        }
+
+        /* Coin rouge décoratif */
+        .right-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 120px; height: 120px;
+            background: var(--red);
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+            opacity: 0.06;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 380px;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .login-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            color: var(--black);
+            margin-bottom: 6px;
+        }
+
+        .login-subtitle {
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-bottom: 36px;
+        }
+
+        /* Sélecteur enseigne */
+        .enseigne-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .enseigne-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1.5px solid var(--gray-200);
+            background: var(--white);
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .enseigne-btn .enseigne-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+            display: block;
+        }
+
+        .enseigne-btn .enseigne-sub {
+            font-size: 10px;
+            color: var(--gray-400);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .enseigne-btn.active {
+            border-color: var(--red);
+            background: #FFF5F6;
+        }
+
+        .enseigne-btn.active .enseigne-name {
+            color: var(--red);
+        }
+
+        .enseigne-btn:hover:not(.active) {
+            border-color: var(--gray-400);
+        }
+
+        /* Champs */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-600);
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--black);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--gray-50);
+        }
+
+        .field input:focus {
+            border-color: var(--red);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(255,0,40,0.08);
+        }
+
+        /* Options login */
+        .login-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            font-size: 13px;
+        }
+
+        .login-options label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--gray-600);
+            cursor: pointer;
+        }
+
+        .login-options input[type="checkbox"] {
+            accent-color: var(--red);
+            width: 14px; height: 14px;
+        }
+
+        .login-options a {
+            color: var(--red);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-options a:hover { text-decoration: underline; }
+
+        /* Bouton */
+        .btn-login {
+            width: 100%;
+            padding: 13px;
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(255,0,40,0.3);
+        }
+
+        .btn-login:hover {
+            background: var(--red-dark);
+            box-shadow: 0 6px 20px rgba(255,0,40,0.4);
+        }
+
+        .btn-login:active { transform: scale(0.98); }
+
+        /* Séparateur */
+        .separator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            font-size: 12px;
+            color: var(--gray-400);
+        }
+
+        .separator::before, .separator::after {
+            content: ''; flex: 1;
+            height: 1px;
+            background: var(--gray-200);
+        }
+
+        /* SSO */
+        .btn-sso {
+            width: 100%;
+            padding: 12px;
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--gray-600);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .btn-sso:hover {
+            border-color: var(--gray-400);
+            background: var(--gray-50);
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+
+        .login-footer a { color: var(--red); text-decoration: none; }
+
+        /* Message d'erreur */
+        .error-msg {
+            display: none;
+            background: #FFF0F2;
+            border: 1px solid rgba(255,0,40,0.2);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--red);
+            margin-bottom: 16px;
+        }
+
+        /* Animation */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loader */
+        .btn-login .spinner {
+            display: none;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Jeux de test (top-right) ── */
+        .demo-launcher {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            z-index: 100;
+        }
+
+        .demo-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px 8px 10px;
+            background: #fff;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 999px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--black);
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            border-color: var(--black);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        }
+
+        .demo-btn svg {
+            width: 16px; height: 16px;
+            color: var(--red);
+        }
+
+        .demo-btn .chev {
+            width: 12px; height: 12px;
+            color: var(--gray-400);
+            transition: transform 0.2s;
+        }
+
+        .demo-launcher.open .demo-btn .chev {
+            transform: rotate(180deg);
+        }
+
+        .demo-panel {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 340px;
+            background: #fff;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 14px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+            padding: 18px;
+            opacity: 0;
+            transform: translateY(-6px);
+            pointer-events: none;
+            transition: all 0.2s;
+        }
+
+        .demo-launcher.open .demo-panel {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .demo-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .demo-panel-head h4 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .demo-panel-head .hint {
+            font-size: 10px;
+            color: var(--gray-400);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .demo-group-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gray-400);
+            padding: 8px 4px 6px 4px;
+        }
+
+        .demo-account {
+            display: block;
+            width: 100%;
+            text-align: left;
+            background: #fff;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .demo-account:last-child {
+            margin-bottom: 0;
+        }
+
+        .demo-account:hover {
+            border-color: var(--red);
+            background: #FFF7F8;
+        }
+
+        .demo-account .role {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--black);
+            margin-bottom: 2px;
+        }
+
+        .demo-account .creds {
+            font-size: 11px;
+            color: var(--gray-600);
+            font-family: 'DM Sans', monospace;
+            line-height: 1.5;
+        }
+
+        .demo-account .creds b {
+            color: var(--gray-400);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+            margin-right: 4px;
+        }
+
+        .demo-panel-foot {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid var(--gray-200);
+            font-size: 10px;
+            color: var(--gray-400);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Lanceur "Jeux de test" -->
+    <div class="demo-launcher" id="demoLauncher">
+        <button class="demo-btn" onclick="toggleDemoPanel()" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="9" y1="13" x2="15" y2="13"/>
+                <line x1="9" y1="17" x2="15" y2="17"/>
+            </svg>
+            Jeux de test
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"/>
+            </svg>
+        </button>
+
+        <div class="demo-panel">
+            <div class="demo-panel-head">
+                <h4>Comptes de démonstration</h4>
+                <span class="hint">Maquette</span>
+            </div>
+
+            <div class="demo-group-label">Raboni</div>
+
+            <button class="demo-account" type="button" onclick="useTestAccount('thomas.girard@raboni.fr','atc2000','atc','raboni')">
+                <div class="role">Profil ATC</div>
+                <div class="creds"><b>email</b>thomas.girard@raboni.fr<br><b>mdp</b>atc2000</div>
+            </button>
+
+            <button class="demo-account" type="button" onclick="useTestAccount('j.manager@raboni.fr','manager2000','manager','raboni')">
+                <div class="role">Profil Manager</div>
+                <div class="creds"><b>email</b>j.manager@raboni.fr<br><b>mdp</b>manager2000</div>
+            </button>
+
+            <button class="demo-account" type="button" onclick="useTestAccount('comptoir@raboni.fr','comptoir2000','comptoir','raboni')">
+                <div class="role">Profil Comptoir</div>
+                <div class="creds"><b>email</b>comptoir@raboni.fr<br><b>mdp</b>comptoir2000</div>
+            </button>
+
+            <button class="demo-account" type="button" onclick="useTestAccount('r.agence@raboni.fr','agence2000','responsable-agence','raboni')">
+                <div class="role">Profil Resp. Agence</div>
+                <div class="creds"><b>email</b>r.agence@raboni.fr<br><b>mdp</b>agence2000</div>
+            </button>
+
+            <div class="demo-panel-foot">Cliquez sur un profil pour pré-remplir les champs</div>
+        </div>
+    </div>
+
+    <!-- Panneau gauche -->
+    <div class="left-panel">
+        <div class="left-logo">
+            <div class="left-logo-box">CDP</div>
+            <span class="left-logo-text">BME France</span>
+        </div>
+
+        <div class="left-hero">
+            <h1>La vision <span>360°</span><br>de vos clients.</h1>
+            <p>Accédez en un clic à l'ensemble des données clients, chantiers, transactions et historique de vos comptes Raboni et Busca.</p>
+        </div>
+
+        <div class="left-stats">
+            <div class="stat">
+                <div class="stat-val">17<span>k</span></div>
+                <div class="stat-lbl">Clients actifs</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">300<span>M€</span></div>
+                <div class="stat-lbl">CA consolidé</div>
+            </div>
+            <div class="stat">
+                <div class="stat-val">57</div>
+                <div class="stat-lbl">Agences</div>
+            </div>
+        </div>
+
+        <div class="left-line"></div>
+    </div>
+
+    <!-- Panneau droit -->
+    <div class="right-panel">
+        <div class="login-box">
+            <h2 class="login-title">Connexion</h2>
+            <p class="login-subtitle">Accédez à votre espace commercial</p>
+
+            <!-- Sélecteur enseigne -->
+            <div class="enseigne-selector">
+                <button class="enseigne-btn active" onclick="selectEnseigne(this, 'raboni')">
+                    <span class="enseigne-name">Raboni</span>
+                    <span class="enseigne-sub">36 agences</span>
+                </button>
+                <button class="enseigne-btn" onclick="selectEnseigne(this, 'busca')">
+                    <span class="enseigne-name">Busca</span>
+                    <span class="enseigne-sub">21 agences</span>
+                </button>
+            </div>
+
+            <!-- Erreur -->
+            <div class="error-msg" id="errorMsg">
+                Email ou mot de passe incorrect.
+            </div>
+
+            <!-- Champs -->
+            <div class="field">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="prenom.nom@raboni.fr" autocomplete="email">
+            </div>
+
+            <div class="field">
+                <label>Mot de passe</label>
+                <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+            </div>
+
+            <div class="login-options">
+                <label>
+                    <input type="checkbox" id="remember"> Se souvenir de moi
+                </label>
+                <a href="#">Mot de passe oublié ?</a>
+            </div>
+
+            <button class="btn-login" onclick="handleLogin()">
+                <span class="spinner" id="spinner"></span>
+                Se connecter
+            </button>
+
+            <div class="separator">ou</div>
+
+            <button class="btn-sso">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Connexion via SSO entreprise
+            </button>
+
+            <div class="login-footer">
+                En vous connectant, vous acceptez les <a href="#">conditions d'utilisation</a><br>
+                © 2026 BME France — CDP v1.0
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var currentEnseigne = 'raboni';
+        var currentRole = null; // 'atc' | 'manager' | null
+
+        // Comptes de test valides (synchronisés avec le panneau "Jeux de test")
+        var TEST_ACCOUNTS = [
+            { email: 'thomas.girard@raboni.fr', password: 'atc2000',       role: 'atc',                enseigne: 'raboni' },
+            { email: 'j.manager@raboni.fr',     password: 'manager2000',   role: 'manager',            enseigne: 'raboni' },
+            { email: 'comptoir@raboni.fr',       password: 'comptoir2000',  role: 'comptoir',           enseigne: 'raboni' },
+            { email: 'r.agence@raboni.fr',       password: 'agence2000',    role: 'responsable-agence', enseigne: 'raboni' }
+        ];
+
+        function selectEnseigne(el, enseigne) {
+            document.querySelectorAll('.enseigne-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            currentEnseigne = enseigne;
+            document.getElementById('email').placeholder =
+                enseigne === 'raboni' ? 'prenom.nom@raboni.fr' : 'prenom.nom@busca.fr';
+        }
+
+        // ── Jeux de test : ouverture / fermeture du panneau ──
+        function toggleDemoPanel() {
+            var launcher = document.getElementById('demoLauncher');
+            launcher.classList.toggle('open');
+        }
+
+        // Fermer le panneau si clic à l'extérieur
+        document.addEventListener('click', function(e) {
+            var launcher = document.getElementById('demoLauncher');
+            if (!launcher.contains(e.target)) launcher.classList.remove('open');
+        });
+
+        // Pré-remplir email/mdp et mémoriser le rôle
+        function useTestAccount(email, password, role, enseigne) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+            currentRole = role;
+
+            // Aligner l'enseigne sélectionnée
+            document.querySelectorAll('.enseigne-btn').forEach(b => b.classList.remove('active'));
+            var btnSel = document.querySelector('.enseigne-btn:nth-child(' + (enseigne === 'raboni' ? 1 : 2) + ')');
+            if (btnSel) btnSel.classList.add('active');
+            currentEnseigne = enseigne;
+
+            // Fermer le panneau
+            document.getElementById('demoLauncher').classList.remove('open');
+
+            // Masquer le message d'erreur
+            document.getElementById('errorMsg').style.display = 'none';
+
+            // Léger feedback visuel : focus sur le bouton de connexion
+            document.querySelector('.btn-login').focus();
+        }
+
+        function handleLogin() {
+            var email = document.getElementById('email').value.trim();
+            var password = document.getElementById('password').value.trim();
+            var errorMsg = document.getElementById('errorMsg');
+            var spinner = document.getElementById('spinner');
+            var btn = document.querySelector('.btn-login');
+
+            errorMsg.style.display = 'none';
+
+            if (!email || !password) {
+                errorMsg.textContent = 'Veuillez renseigner votre email et mot de passe.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Vérification : email/mdp doivent correspondre à un compte de test
+            var match = TEST_ACCOUNTS.find(function(a) {
+                return a.email.toLowerCase() === email.toLowerCase() && a.password === password;
+            });
+
+            if (!match) {
+                errorMsg.textContent = 'Email et/ou mot de passe incorrect. Veuillez utiliser les jeux de tests';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // Compte valide → on récupère rôle + enseigne depuis le compte trouvé
+            var detectedRole = match.role;
+            currentEnseigne = match.enseigne;
+
+            // Simulation chargement
+            spinner.style.display = 'inline-block';
+            btn.disabled = true;
+
+            setTimeout(function() {
+                spinner.style.display = 'none';
+                btn.disabled = false;
+
+                // Construction de l'URL avec rôle + enseigne en paramètres
+                // (la page cible pourra lire ces params pour adapter les onglets affichés)
+                var params = new URLSearchParams();
+                if (detectedRole) params.set('role', detectedRole);
+                if (currentEnseigne) params.set('enseigne', currentEnseigne);
+
+                var qs = params.toString();
+                // Redirection selon le rôle
+                var targetFile =
+                    detectedRole === 'atc'                ? 'CDP_vue_atc.html' :
+                    detectedRole === 'comptoir'           ? 'CDP_vue_comptoir.html' :
+                    detectedRole === 'responsable-agence' ? 'CDP_vue_responsable_agence.html' :
+                                                            'CDP_vue_manager.html';
+                window.location.href = targetFile;
+            }, 1200);
+        }
+
+        // Connexion au Enter
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleLogin();
+        });
+    </script>
+</body>
+</html>
