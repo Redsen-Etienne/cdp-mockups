@@ -1,0 +1,1269 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Responsable d'Agence — BME France CDP</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="shared.css">
+    <script src="data.js"></script>
+    <style>
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--gray-50);
+            color: var(--black);
+            line-height: 1.5;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            zoom: 0.9;
+            overflow: hidden;
+        }
+
+        .app-wrapper { height: calc(100vh / 0.9); overflow: hidden; }
+
+        .container {
+            display: flex !important;
+            flex-direction: column !important;
+            height: calc(100vh / 0.9) !important;
+            overflow-y: auto;
+        }
+
+        #searchArea { flex-shrink: 0; position: sticky; top: 0; z-index: 100; background: var(--white); }
+
+        #viewNameBar {
+            flex-shrink: 0;
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 11px 32px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--black);
+            letter-spacing: -0.01em;
+        }
+
+        .blank-page {
+            flex: 1;
+            background: var(--gray-50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        @keyframes slideInUp {
+            from { transform: translate(-50%, -40%); opacity: 0; }
+            to   { transform: translate(-50%, -50%); opacity: 1; }
+        }
+        /* ── Quick Search Dropdown ── */
+        #quickSearchDropdown { position:fixed; width:520px; background:#fff; border:1.5px solid var(--gray-200); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.12); z-index:99999; overflow:hidden; max-height:420px; overflow-y:auto; }
+        .qs-group-label { padding:8px 16px 4px; font-size:10px; font-weight:700; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.8px; background:var(--gray-50); border-bottom:1px solid var(--gray-100); }
+        .qs-item { display:flex; align-items:center; gap:12px; padding:10px 16px; cursor:pointer; transition:background 0.12s; border-bottom:1px solid var(--gray-100); }
+        .qs-item:last-child { border-bottom:none; }
+        .qs-item:hover { background:var(--red-light); }
+        .qs-item-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .qs-item-icon.client { background:#EEF2FF; } .qs-item-icon.prospect { background:#FFF4E5; }
+        .qs-item-body { flex:1; min-width:0; }
+        .qs-item-name { font-size:13px; font-weight:600; color:var(--black); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .qs-item-name mark { background:none; color:var(--red); font-weight:700; }
+        .qs-item-sub { font-size:11px; color:var(--gray-500); margin-top:1px; }
+        .qs-item-badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:999px; white-space:nowrap; flex-shrink:0; }
+        .qs-item-badge.actif { background:#EAF7EE; color:#1F7A3D; } .qs-item-badge.inactif { background:var(--gray-100); color:var(--gray-500); }
+        .qs-item-badge.chaud { background:#FFF0F0; color:var(--red); } .qs-item-badge.tiede { background:#FFF4E5; color:#EA7600; } .qs-item-badge.froid { background:#EEF2FF; color:#4F46E5; }
+        .qs-empty { padding:20px 16px; text-align:center; font-size:13px; color:var(--gray-400); }
+        .qs-footer { padding:8px 16px; background:var(--gray-50); border-top:1px solid var(--gray-100); font-size:11px; color:var(--gray-400); text-align:center; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+        <div class="sidebar-logo" style="font-size:11px;letter-spacing:1px;">CDP</div>
+
+        <div class="sidebar-icon light active" title="Accueil" onclick="showPage('accueil', this)" style="margin-top:4px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/>
+                <polyline points="9 21 9 12 15 12 15 21"/>
+            </svg><span class="sidebar-label">Accueil</span>
+        </div>
+        <div class="sidebar-icon light" title="Point Hebdo" onclick="showPage('pointHebdo', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg><span class="sidebar-label">Point Hebdo</span>
+        </div>
+        <div class="sidebar-spacer"></div>
+
+        <div class="sidebar-icon" title="Déconnexion" style="margin-bottom:4px;" onclick="window.location.href='CDP_login.html'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg><span class="sidebar-label">Déconnexion</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="searchArea">
+            <!-- Barre de recherche -->
+            <div class="header">
+                <div style="position:relative;height:54px;display:flex;justify-content:flex-end;align-items:center;border-bottom:1px solid var(--gray-200);margin:-14px -24px -14px -24px;padding:0 24px;">
+                    <div style="position:absolute;right:24px;display:flex;align-items:center;gap:10px;">
+                        <!-- Cloche notifications -->
+                        <div style="position:relative;margin-right:28px;">
+                            <button id="notifBellBtn" onclick="toggleNotifPanel(event)" style="background:transparent;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background='transparent'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3E3E3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                <span id="notifBadge" style="display:none;position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff;"></span>
+                            </button>
+                            <div id="notifPanel" style="display:none;position:absolute;top:34px;right:-8px;width:320px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.14);z-index:10000;overflow:hidden;">
+                                <div style="padding:14px 16px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between;">
+                                    <span style="font-size:14px;font-weight:700;color:var(--black);">Notifications</span>
+                                    <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:500;">Tout marquer comme lu</button>
+                                </div>
+                                <div id="notifList" style="max-height:320px;overflow-y:auto;">
+                                    <div style="padding:40px 20px;text-align:center;color:var(--gray-400);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:10px;opacity:0.4;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                        <div style="font-size:13px;font-weight:500;">Aucune notification</div>
+                                    </div>
+                                </div>
+                                <div style="padding:10px 16px;border-top:1px solid var(--gray-200);background:var(--gray-50);">
+                                    <span style="font-size:11px;color:var(--gray-400);">Les alertes de visites et rappels apparaîtront ici.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Bouton Help -->
+                        <button onclick="openHelpModal()" style="background:transparent;border:none;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;transition:background 0.15s;" onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background='transparent'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#3E3E3C;">
+                                <path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2z"></path>
+                                <line x1="7" y1="7" x2="17" y2="7"></line>
+                                <line x1="7" y1="11" x2="15" y2="11"></line>
+                                <line x1="7" y1="15" x2="13" y2="15"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panneau Recherche Avancée -->
+                <div id="raPanel" style="display:none;background:var(--gray-50);padding:16px 24px 18px;border-bottom:1px solid var(--gray-200);box-shadow:0 4px 12px rgba(0,0,0,0.04);animation:slideDown 0.2s ease;margin:0 -24px -14px -24px;">
+
+                    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px;">
+
+                        <!-- Bloc Client -->
+                        <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;">
+                            <div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                <span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Client</span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;">
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Statut client</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous</option>
+                                        <option>Actif</option>
+                                        <option>Inactif</option>
+                                        <option>Prospect</option>
+                                        <option>Suspendu</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Secteur d'activité</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous les secteurs</option>
+                                        <option>Plâtrerie / Isolation</option>
+                                        <option>Peinture / Décoration</option>
+                                        <option>Gros œuvre</option>
+                                        <option>Menuiserie / Charpente</option>
+                                        <option>Électricité / Plomberie</option>
+                                        <option>Multi-corps d'état</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Groupement / Réseau</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous</option>
+                                        <option>FFB</option>
+                                        <option>CAPEB</option>
+                                        <option>Groupement Indépendant</option>
+                                        <option>Non affilié</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Programme fidélité</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous</option>
+                                        <option>Adhérent</option>
+                                        <option>Non adhérent</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloc Chantier -->
+                        <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;">
+                            <div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                                <span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Chantier</span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;">
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Type de chantier</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous les types</option>
+                                        <option>Neuf</option>
+                                        <option>Rénovation</option>
+                                        <option>Extension</option>
+                                        <option>Entretien / maintenance</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Statut chantier</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous</option>
+                                        <option>Planifié</option>
+                                        <option>En cours</option>
+                                        <option>Terminé</option>
+                                        <option>Annulé</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Département</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous les départements</option>
+                                        <option>69 — Rhône</option>
+                                        <option>01 — Ain</option>
+                                        <option>38 — Isère</option>
+                                        <option>42 — Loire</option>
+                                        <option>71 — Saône-et-Loire</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Montant estimé (€)</label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <input type="number" placeholder="Min" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <span style="font-size:11px;color:var(--gray-500);font-weight:500;">à</span>
+                                        <input type="number" placeholder="Max" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bloc Commercial -->
+                        <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;">
+                            <div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                <span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Commercial</span>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;">
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">ATC référent</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Tous les ATC</option>
+                                        <option>Thomas Girard</option>
+                                        <option>Sarah Lefèvre</option>
+                                        <option>Julie Marchand</option>
+                                        <option>Lucas Reynaud</option>
+                                        <option>Nicolas Duval</option>
+                                        <option>Emma Bertrand</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Agence de rattachement</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Toutes les agences</option>
+                                        <option>Lyon Centre</option>
+                                        <option>Vénissieux</option>
+                                        <option>Villeurbanne</option>
+                                        <option>Saint-Priest</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">CA annuel (€)</label>
+                                    <div style="display:flex;gap:6px;align-items:center;">
+                                        <input type="number" placeholder="Min" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <span style="font-size:11px;color:var(--gray-500);font-weight:500;">à</span>
+                                        <input type="number" placeholder="Max" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Dernière visite</label>
+                                    <select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:var(--white);outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'">
+                                        <option value="">Toutes périodes</option>
+                                        <option>Cette semaine</option>
+                                        <option>Ce mois</option>
+                                        <option>Il y a moins de 3 mois</option>
+                                        <option>Il y a plus de 3 mois</option>
+                                        <option>Jamais visité</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- /blocs -->
+
+                    <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
+                        <button onclick="toggleRA()" style="padding:8px 16px;border:1.5px solid var(--gray-200);border-radius:8px;background:var(--white);color:var(--gray-700);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:border-color 0.15s,background 0.15s;" onmouseover="this.style.borderColor='var(--gray-400)';this.style.background='var(--gray-50)'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.background='var(--white)'">Réinitialiser</button>
+                        <button style="padding:8px 20px;border:none;border-radius:8px;background:var(--red);color:var(--white);font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(255,0,40,0.25);transition:background 0.15s;" onmouseover="this.style.background='var(--red-dark)'" onmouseout="this.style.background='var(--red)'">Lancer la recherche</button>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /searchArea -->
+
+        <div id="viewNameBar">Accueil</div>
+
+        <!-- Page Point Hebdo -->
+        <div id="pagePointHebdo" style="display:none;flex-direction:row;flex:1;min-height:0;overflow:hidden;">
+
+            <!-- ── Colonne gauche : liste des points ── -->
+            <div style="width:260px;min-width:260px;border-right:1px solid var(--gray-200);display:flex;flex-direction:column;overflow:hidden;background:var(--gray-50);">
+
+                <!-- Barre de recherche rapide -->
+                <div style="padding:12px;border-bottom:1px solid var(--gray-200);flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--gray-200);border-radius:8px;padding:7px 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" placeholder="Chercher une semaine…" oninput="phFilterList(this.value)" style="border:none;outline:none;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:transparent;flex:1;min-width:0;">
+                    </div>
+                </div>
+
+                <!-- Liste scrollable -->
+                <div id="ph-list" style="flex:1;overflow-y:auto;padding:8px;">
+
+                    <!-- Groupe Novembre 2026 -->
+                    <div class="ph-month-group">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;padding:8px 8px 4px;">Novembre 2026</div>
+
+                        <div class="ph-list-item active" data-semaine="45" onclick="phSelectSemaine(45,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;background:var(--red);margin-bottom:3px;">
+                            <span style="font-size:12px;font-weight:700;color:#fff;">Semaine 45</span>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.8);">03–07 nov. 2026</div>
+                            <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:1px;">CA : 184 200 € · 4 actions</div>
+                        </div>
+
+                        <div class="ph-list-item" data-semaine="44" onclick="phSelectSemaine(44,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:background 0.12s;" onmouseover="if(!this.classList.contains('active'))this.style.background='var(--gray-100)'" onmouseout="if(!this.classList.contains('active'))this.style.background='transparent'">
+                            <span style="font-size:12px;font-weight:600;color:var(--black);">Semaine 44</span>
+                            <div style="font-size:11px;color:var(--gray-500);">27–31 oct. 2026</div>
+                            <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">CA : 173 000 € · 3 actions</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Groupe Octobre 2026 -->
+                    <div class="ph-month-group">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;padding:8px 8px 4px;">Octobre 2026</div>
+
+                        <div class="ph-list-item" data-semaine="43" onclick="phSelectSemaine(43,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:background 0.12s;" onmouseover="if(!this.classList.contains('active'))this.style.background='var(--gray-100)'" onmouseout="if(!this.classList.contains('active'))this.style.background='transparent'">
+                            <span style="font-size:12px;font-weight:600;color:var(--black);">Semaine 43</span>
+                            <div style="font-size:11px;color:var(--gray-500);">20–24 oct. 2026</div>
+                            <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">CA : 191 400 € · 5 actions</div>
+                        </div>
+
+                        <div class="ph-list-item" data-semaine="42" onclick="phSelectSemaine(42,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:background 0.12s;" onmouseover="if(!this.classList.contains('active'))this.style.background='var(--gray-100)'" onmouseout="if(!this.classList.contains('active'))this.style.background='transparent'">
+                            <span style="font-size:12px;font-weight:600;color:var(--black);">Semaine 42</span>
+                            <div style="font-size:11px;color:var(--gray-500);">13–17 oct. 2026</div>
+                            <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">CA : 178 200 € · 6 actions</div>
+                        </div>
+
+                        <div class="ph-list-item" data-semaine="41" onclick="phSelectSemaine(41,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:background 0.12s;" onmouseover="if(!this.classList.contains('active'))this.style.background='var(--gray-100)'" onmouseout="if(!this.classList.contains('active'))this.style.background='transparent'">
+                            <span style="font-size:12px;font-weight:600;color:var(--black);">Semaine 41</span>
+                            <div style="font-size:11px;color:var(--gray-500);">06–10 oct. 2026</div>
+                            <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">CA : 162 900 € · 4 actions</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Groupe Septembre 2026 -->
+                    <div class="ph-month-group">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.7px;padding:8px 8px 4px;">Septembre 2026</div>
+
+                        <div class="ph-list-item" data-semaine="39" onclick="phSelectSemaine(39,this)" style="display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;transition:background 0.12s;" onmouseover="if(!this.classList.contains('active'))this.style.background='var(--gray-100)'" onmouseout="if(!this.classList.contains('active'))this.style.background='transparent'">
+                            <span style="font-size:12px;font-weight:600;color:var(--black);">Semaine 39</span>
+                            <div style="font-size:11px;color:var(--gray-500);">22–26 sep. 2026</div>
+                            <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">CA : 155 600 € · 3 actions</div>
+                        </div>
+
+                    </div>
+
+                </div><!-- /ph-list -->
+
+                <!-- Bouton Nouveau en bas -->
+                <div style="padding:12px;border-top:1px solid var(--gray-200);background:var(--white);flex-shrink:0;">
+                    <button onclick="phNouveauPoint()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px 0;border:none;border-radius:8px;background:var(--red);color:var(--white);font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 3px 10px rgba(255,0,40,0.22);transition:background 0.15s;letter-spacing:0.01em;" onmouseover="this.style.background='#B91C1C'" onmouseout="this.style.background='var(--red)'">
+                        <svg width="11" height="11" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+                        Nouveau
+                    </button>
+                </div>
+
+            </div><!-- /colonne gauche -->
+
+            <!-- ── Colonne droite : contenu du point sélectionné ── -->
+            <div id="ph-detail" style="flex:1;min-width:0;overflow-y:auto;background:var(--gray-50);display:flex;flex-direction:column;">
+
+            <!-- ── En-tête semaine ── -->
+            <div style="background:var(--white);border-bottom:1px solid var(--gray-200);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                <div>
+                    <div id="phSemaineLabel" style="font-size:15px;font-weight:700;color:var(--black);letter-spacing:-0.01em;">Semaine 45 · 03–07 nov. 2026</div>
+                    <div style="font-size:11px;color:var(--gray-400);margin-top:1px;">Point hebdomadaire — Agence BUSCA</div>
+                </div>
+            </div>
+
+            <!-- ── Corps principal ── -->
+            <div style="display:flex;gap:20px;padding:20px 32px;flex:1;min-height:0;overflow-y:auto;flex-direction:column;">
+
+                <!-- ── Rangée KPIs ── -->
+                <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;flex-shrink:0;">
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">CA Semaine</div>
+                        <div id="phKpiCA" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">184 200 €</div>
+                        <div style="font-size:11px;color:#4BCA81;font-weight:600;margin-top:4px;">+6,4 % vs S44</div>
+                    </div>
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Objectif semaine</div>
+                        <div id="phKpiObj" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">195 000 €</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+                            <div style="flex:1;height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden;">
+                                <div id="phKpiPctBar" style="width:94%;height:100%;background:#EA7600;border-radius:2px;"></div>
+                            </div>
+                            <span id="phKpiPctLbl" style="font-size:11px;font-weight:600;color:#EA7600;white-space:nowrap;">94 %</span>
+                        </div>
+                    </div>
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Marge brute</div>
+                        <div id="phKpiMarge" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">62 200 €</div>
+                        <div style="font-size:11px;color:var(--gray-500);font-weight:500;margin-top:4px;">Taux 33,8 %</div>
+                    </div>
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Commandes</div>
+                        <div id="phKpiCmds" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">47</div>
+                        <div style="font-size:11px;color:var(--gray-500);font-weight:500;margin-top:4px;">Panier moyen 3 919 €</div>
+                    </div>
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Devis ouverts</div>
+                        <div id="phKpiDevis" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">23</div>
+                        <div style="font-size:11px;color:var(--gray-500);font-weight:500;margin-top:4px;">Potentiel 148 500 €</div>
+                    </div>
+
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;padding:14px 16px;">
+                        <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">Taux transformation</div>
+                        <div id="phKpiTx" style="font-size:18px;font-weight:700;color:var(--black);letter-spacing:-0.02em;">67 %</div>
+                        <div id="phKpiTxSub" style="font-size:11px;color:#C23934;font-weight:600;margin-top:4px;">−3 pts vs objectif</div>
+                    </div>
+
+                </div><!-- /rangée KPIs -->
+
+                <!-- ── Colonnes principal (gauche + droite) ── -->
+                <div style="display:flex;gap:20px;flex:1;min-height:0;">
+
+                <!-- Colonne gauche : Participants + Ordre du jour -->
+                <div style="width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;">
+
+                    <!-- Participants -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;overflow:hidden;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:12px;font-weight:700;color:var(--black);">Participants</span>
+                            <span style="font-size:11px;color:var(--gray-400);">3 / 4</span>
+                        </div>
+                        <div style="padding:8px 12px;display:flex;flex-direction:column;gap:2px;" id="phParticipants">
+                            <div class="ph-participant" data-id="pm1" data-present="true" onclick="phToggleParticipant(this)" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                <div class="ph-p-dot" style="width:8px;height:8px;border-radius:50%;background:#4BCA81;flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:var(--black);">Sophie Martin</div>
+                                    <div style="font-size:10px;color:var(--gray-400);">Manager comptoir</div>
+                                </div>
+                                <div class="ph-p-status" style="font-size:10px;font-weight:600;color:#4BCA81;">Présent</div>
+                            </div>
+                            <div class="ph-participant" data-id="pm2" data-present="true" onclick="phToggleParticipant(this)" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                <div class="ph-p-dot" style="width:8px;height:8px;border-radius:50%;background:#4BCA81;flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:var(--black);">Marc Dupuis</div>
+                                    <div style="font-size:10px;color:var(--gray-400);">Manager ATC</div>
+                                </div>
+                                <div class="ph-p-status" style="font-size:10px;font-weight:600;color:#4BCA81;">Présent</div>
+                            </div>
+                            <div class="ph-participant" data-id="pm3" data-present="false" onclick="phToggleParticipant(this)" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                <div class="ph-p-dot" style="width:8px;height:8px;border-radius:50%;background:#C23934;flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:var(--black);">Julie Bernard</div>
+                                    <div style="font-size:10px;color:var(--gray-400);">Manager logistique</div>
+                                </div>
+                                <div class="ph-p-status" style="font-size:10px;font-weight:600;color:#C23934;">Absent</div>
+                            </div>
+                            <div class="ph-participant" data-id="pm4" data-present="true" onclick="phToggleParticipant(this)" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background 0.12s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                <div class="ph-p-dot" style="width:8px;height:8px;border-radius:50%;background:#4BCA81;flex-shrink:0;"></div>
+                                <div style="flex:1;">
+                                    <div style="font-size:12px;font-weight:600;color:var(--black);">Thomas Laurent</div>
+                                    <div style="font-size:10px;color:var(--gray-400);">Manager projets</div>
+                                </div>
+                                <div class="ph-p-status" style="font-size:10px;font-weight:600;color:#4BCA81;">Présent</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ordre du jour -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;overflow:hidden;flex:1;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:12px;font-weight:700;color:var(--black);">Ordre du jour</span>
+                            <button onclick="phAddOdj()" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:600;padding:0;">+ Ajouter</button>
+                        </div>
+                        <div style="padding:8px 12px;display:flex;flex-direction:column;gap:2px;" id="phOdjList">
+                            <div class="ph-odj-item" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;">
+                                <span style="font-size:10px;font-weight:700;color:var(--white);background:var(--red);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">1</span>
+                                <span style="font-size:12px;color:var(--black);font-weight:500;">Revue des KPIs semaine</span>
+                            </div>
+                            <div class="ph-odj-item" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;">
+                                <span style="font-size:10px;font-weight:700;color:var(--white);background:var(--red);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">2</span>
+                                <span style="font-size:12px;color:var(--black);font-weight:500;">Performance par manager</span>
+                            </div>
+                            <div class="ph-odj-item" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;">
+                                <span style="font-size:10px;font-weight:700;color:var(--white);background:var(--red);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">3</span>
+                                <span style="font-size:12px;color:var(--black);font-weight:500;">Points de vigilance clients</span>
+                            </div>
+                            <div class="ph-odj-item" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;">
+                                <span style="font-size:10px;font-weight:700;color:var(--white);background:var(--red);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">4</span>
+                                <span style="font-size:12px;color:var(--black);font-weight:500;">Actions S44 — suivi</span>
+                            </div>
+                            <div class="ph-odj-item" style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:8px;">
+                                <span style="font-size:10px;font-weight:700;color:var(--white);background:var(--gray-300);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">5</span>
+                                <span style="font-size:12px;color:var(--black);font-weight:500;">Divers / questions</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /colonne gauche -->
+
+                <!-- Colonne centrale + droite -->
+                <div style="flex:1;display:flex;flex-direction:column;gap:16px;min-width:0;">
+
+                    <!-- Revue par manager -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;display:flex;flex-direction:column;height:240px;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--black);">Revue par manager</span>
+                            <div style="display:flex;gap:6px;">
+                                <span style="font-size:11px;color:var(--gray-400);">Semaine 45 vs objectif</span>
+                            </div>
+                        </div>
+                        <div style="flex:1;overflow-y:auto;min-height:0;">
+                            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                                <thead>
+                                    <tr>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:left;padding:9px 16px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Manager / Périmètre</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:right;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">CA semaine</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:right;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Objectif</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:right;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Réal. %</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:right;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Marge %</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:right;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Cmds</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:center;padding:9px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Tendance</th>
+                                        <th style="position:sticky;top:0;background:var(--gray-50);text-align:left;padding:9px 16px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);z-index:1;">Commentaire</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;">
+                                            <div style="font-weight:600;color:var(--black);">Sophie Martin</div>
+                                            <div style="font-size:10px;color:var(--gray-400);margin-top:1px;">Comptoir · 4 collaborateurs</div>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;font-weight:600;color:var(--black);">68 400 €</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-500);">70 000 €</td>
+                                        <td style="padding:10px 12px;text-align:right;">
+                                            <span style="font-size:11px;font-weight:700;color:#EA7600;background:#FFF4E5;padding:2px 7px;border-radius:12px;">98 %</span>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);font-weight:500;">35,2 %</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);">21</td>
+                                        <td style="padding:10px 12px;text-align:center;font-size:14px;">↗</td>
+                                        <td style="padding:10px 16px;" id="ph-comment-pm1">
+                                            <span class="ph-comment-text" style="font-size:11px;color:var(--gray-500);cursor:pointer;border-bottom:1px dashed var(--gray-300);" onclick="phEditComment('pm1',this)">Bonne dynamique comptoir, retard lundi rattrapé</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;">
+                                            <div style="font-weight:600;color:var(--black);">Marc Dupuis</div>
+                                            <div style="font-size:10px;color:var(--gray-400);margin-top:1px;">ATC terrain · 6 ATC</div>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;font-weight:600;color:var(--black);">82 600 €</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-500);">80 000 €</td>
+                                        <td style="padding:10px 12px;text-align:right;">
+                                            <span style="font-size:11px;font-weight:700;color:#4BCA81;background:#EAF7EE;padding:2px 7px;border-radius:12px;">103 %</span>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);font-weight:500;">32,8 %</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);">18</td>
+                                        <td style="padding:10px 12px;text-align:center;font-size:14px;">↗</td>
+                                        <td style="padding:10px 16px;" id="ph-comment-pm2">
+                                            <span class="ph-comment-text" style="font-size:11px;color:var(--gray-500);cursor:pointer;border-bottom:1px dashed var(--gray-300);" onclick="phEditComment('pm2',this)">Gros chantier Construc'Pro signé mercredi</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;">
+                                            <div style="font-weight:600;color:var(--black);">Julie Bernard</div>
+                                            <div style="font-size:10px;color:var(--gray-400);margin-top:1px;">Logistique · 3 préparateurs</div>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;font-weight:600;color:var(--black);">—</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-500);">—</td>
+                                        <td style="padding:10px 12px;text-align:right;">
+                                            <span style="font-size:11px;font-weight:700;color:var(--gray-400);background:var(--gray-100);padding:2px 7px;border-radius:12px;">Absente</span>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-400);">—</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-400);">8</td>
+                                        <td style="padding:10px 12px;text-align:center;font-size:14px;color:var(--gray-300);">—</td>
+                                        <td style="padding:10px 16px;" id="ph-comment-pm3">
+                                            <span class="ph-comment-text" style="font-size:11px;color:var(--gray-500);cursor:pointer;border-bottom:1px dashed var(--gray-300);" onclick="phEditComment('pm3',this)">Absence planifiée. Données transmises par mail</span>
+                                        </td>
+                                    </tr>
+                                    <tr style="transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;">
+                                            <div style="font-weight:600;color:var(--black);">Thomas Laurent</div>
+                                            <div style="font-size:10px;color:var(--gray-400);margin-top:1px;">Projets & devis · 2 chargés d'aff.</div>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;font-weight:600;color:var(--black);">33 200 €</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--gray-500);">45 000 €</td>
+                                        <td style="padding:10px 12px;text-align:right;">
+                                            <span style="font-size:11px;font-weight:700;color:#C23934;background:#FFF0F0;padding:2px 7px;border-radius:12px;">74 %</span>
+                                        </td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);font-weight:500;">34,1 %</td>
+                                        <td style="padding:10px 12px;text-align:right;color:var(--black);">8</td>
+                                        <td style="padding:10px 12px;text-align:center;font-size:14px;color:#C23934;">↘</td>
+                                        <td style="padding:10px 16px;" id="ph-comment-pm4">
+                                            <span class="ph-comment-text" style="font-size:11px;color:#C23934;font-weight:500;cursor:pointer;border-bottom:1px dashed #C23934;" onclick="phEditComment('pm4',this)">⚠ 3 devis en attente depuis +7 jours — relance urgente</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Points de vigilance -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;display:flex;flex-direction:column;height:240px;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C23934" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                <span style="font-size:12px;font-weight:700;color:var(--black);">Points de vigilance</span>
+                                <span style="font-size:10px;font-weight:700;color:#C23934;background:#FFF0F0;padding:2px 8px;border-radius:12px;">3 alertes</span>
+                            </div>
+                            <button onclick="phAddVigilance()" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-weight:600;padding:0;">+ Ajouter</button>
+                        </div>
+                        <div style="flex:1;overflow-y:auto;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px 16px;align-content:start;" id="phVigilanceList">
+                            <div style="border:1.5px solid #FEE2E2;border-radius:10px;padding:12px;background:#FFF9F9;">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+                                    <span style="font-size:10px;font-weight:700;color:#C23934;text-transform:uppercase;letter-spacing:0.5px;">Risque perte</span>
+                                    <span style="font-size:10px;color:var(--gray-400);">Depuis 3 sem.</span>
+                                </div>
+                                <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:2px;">IsoPlus Rénovation</div>
+                                <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;">Aucune commande depuis 18 jours · CA annuel 92 k€</div>
+                                <div style="font-size:11px;color:var(--black);background:#FFF0F0;padding:5px 8px;border-radius:6px;">→ Sophie Martin à rappeler avant vendredi</div>
+                            </div>
+                            <div style="border:1.5px solid #FEF3C7;border-radius:10px;padding:12px;background:#FFFDF5;">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+                                    <span style="font-size:10px;font-weight:700;color:#EA7600;text-transform:uppercase;letter-spacing:0.5px;">Impayé</span>
+                                    <span style="font-size:10px;color:var(--gray-400);">Échu +15j</span>
+                                </div>
+                                <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:2px;">Chantiers Sud-Est</div>
+                                <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;">Facture 8 450 € — en attente règlement</div>
+                                <div style="font-size:11px;color:var(--black);background:#FFF4E5;padding:5px 8px;border-radius:6px;">→ Relance envoyée · Attente réponse DAF client</div>
+                            </div>
+                            <div style="border:1.5px solid #FEE2E2;border-radius:10px;padding:12px;background:#FFF9F9;">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
+                                    <span style="font-size:10px;font-weight:700;color:#C23934;text-transform:uppercase;letter-spacing:0.5px;">Devis en souffrance</span>
+                                    <span style="font-size:10px;color:var(--gray-400);">3 dossiers</span>
+                                </div>
+                                <div style="font-size:13px;font-weight:700;color:var(--black);margin-bottom:2px;">Projets Thomas Laurent</div>
+                                <div style="font-size:11px;color:var(--gray-500);margin-bottom:8px;">Potentiel non transformé : 63 200 € · Délai moyen 9 j</div>
+                                <div style="font-size:11px;color:var(--black);background:#FFF0F0;padding:5px 8px;border-radius:6px;">→ Revue individuelle planifiée jeudi 14h</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions & décisions -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;display:flex;flex-direction:column;height:240px;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--black);">Actions &amp; décisions</span>
+                            <button onclick="phAddAction()" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1.5px solid var(--red);border-radius:8px;background:var(--white);color:var(--red);font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='#FFF0F0'" onmouseout="this.style.background='var(--white)'">+ Nouvelle action</button>
+                        </div>
+                        <div style="flex:1;overflow-y:auto;min-height:0;overflow-x:auto;">
+                            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                                <thead>
+                                    <tr style="background:var(--gray-50);">
+                                        <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);">Action</th>
+                                        <th style="text-align:left;padding:8px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);">Responsable</th>
+                                        <th style="text-align:left;padding:8px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);">Échéance</th>
+                                        <th style="text-align:center;padding:8px 12px;font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--gray-100);">Statut</th>
+                                        <th style="padding:8px 16px;border-bottom:1px solid var(--gray-100);"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="phActionsList">
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;font-weight:500;color:var(--black);">Rappeler IsoPlus Rénovation — proposition de visite</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">Sophie Martin</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">07/11/2026</td>
+                                        <td style="padding:10px 12px;text-align:center;"><span style="font-size:11px;font-weight:600;color:#EA7600;background:#FFF4E5;padding:2px 8px;border-radius:12px;">En cours</span></td>
+                                        <td style="padding:10px 16px;text-align:right;"><button onclick="phToggleActionStatut(this)" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-weight:500;">✓ Clôturer</button></td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;font-weight:500;color:var(--black);">Relancer les 3 devis projets en attente</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">Thomas Laurent</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">06/11/2026</td>
+                                        <td style="padding:10px 12px;text-align:center;"><span style="font-size:11px;font-weight:600;color:#C23934;background:#FFF0F0;padding:2px 8px;border-radius:12px;">En retard</span></td>
+                                        <td style="padding:10px 16px;text-align:right;"><button onclick="phToggleActionStatut(this)" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-weight:500;">✓ Clôturer</button></td>
+                                    </tr>
+                                    <tr style="border-bottom:1px solid var(--gray-100);transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;font-weight:500;color:var(--black);">Vérifier état stocks isolants laine de verre S45</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">Julie Bernard</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">05/11/2026</td>
+                                        <td style="padding:10px 12px;text-align:center;"><span style="font-size:11px;font-weight:600;color:#4BCA81;background:#EAF7EE;padding:2px 8px;border-radius:12px;">Fait</span></td>
+                                        <td style="padding:10px 16px;text-align:right;"><button onclick="phToggleActionStatut(this)" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-weight:500;">↩ Rouvrir</button></td>
+                                    </tr>
+                                    <tr style="transition:background 0.1s;" onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                                        <td style="padding:10px 16px;font-weight:500;color:var(--black);">Préparer budget prévisionnel S46–S48</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">Marc Dupuis</td>
+                                        <td style="padding:10px 12px;color:var(--gray-600);">10/11/2026</td>
+                                        <td style="padding:10px 12px;text-align:center;"><span style="font-size:11px;font-weight:600;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:12px;">À faire</span></td>
+                                        <td style="padding:10px 16px;text-align:right;"><button onclick="phToggleActionStatut(this)" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-weight:500;">✓ Clôturer</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Notes libres -->
+                    <div style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:12px;display:flex;flex-direction:column;height:112px;margin-bottom:8px;">
+                        <div style="padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--black);">Notes libres</span>
+                            <span style="font-size:11px;color:var(--gray-400);" id="phNotesSaved"></span>
+                        </div>
+                        <div style="flex:1;overflow-y:auto;min-height:0;padding:14px 16px;">
+                            <textarea id="phNotesTextarea" placeholder="Prendre des notes pendant le point hebdo…" oninput="phSaveNotes()" style="width:100%;height:100%;box-sizing:border-box;border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 14px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);resize:none;outline:none;transition:border-color 0.15s;line-height:1.6;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"></textarea>
+                        </div>
+                    </div>
+
+                </div><!-- /colonne centrale+droite -->
+                </div><!-- /colonnes principal -->
+            </div><!-- /corps principal -->
+
+            </div><!-- /ph-detail (colonne droite) -->
+
+        </div><!-- /pagePointHebdo -->
+
+        <script>
+        /* ── Point Hebdo logic ── */
+        var _phSemaine = 45;
+
+        function phNavSemaine(delta) {
+            _phSemaine = Math.max(1, Math.min(52, _phSemaine + delta));
+            var lundi = phGetLundi(_phSemaine, 2026);
+            var vendredi = new Date(lundi); vendredi.setDate(vendredi.getDate() + 4);
+            var mois = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+            var label = 'Semaine ' + _phSemaine + ' · '
+                + lundi.getDate() + '–' + vendredi.getDate() + ' ' + mois[lundi.getMonth()] + ' ' + lundi.getFullYear();
+            document.getElementById('phSemaineLabel').textContent = label;
+        }
+
+        function phGetLundi(semaine, annee) {
+            var d = new Date(annee, 0, 1);
+            var dow = d.getDay() || 7;
+            d.setDate(d.getDate() + (dow <= 4 ? 1 - dow : 8 - dow));
+            d.setDate(d.getDate() + (semaine - 1) * 7);
+            return d;
+        }
+
+        function phToggleParticipant(el) {
+            var present = el.getAttribute('data-present') === 'true';
+            present = !present;
+            el.setAttribute('data-present', present);
+            var dot = el.querySelector('.ph-p-dot');
+            var status = el.querySelector('.ph-p-status');
+            dot.style.background = present ? '#4BCA81' : '#C23934';
+            status.textContent = present ? 'Présent' : 'Absent';
+            status.style.color = present ? '#4BCA81' : '#C23934';
+            var total = document.querySelectorAll('.ph-participant').length;
+            var presents = document.querySelectorAll('.ph-participant[data-present="true"]').length;
+            document.querySelector('#phParticipants').closest('.ph-card, div[style*="border-radius:12px"]').querySelector('span[style*="gray-400"]').textContent = presents + ' / ' + total;
+        }
+
+        function phEditComment(id, el) {
+            var current = el.textContent;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.value = current;
+            input.style.cssText = 'border:1.5px solid var(--red);border-radius:6px;padding:3px 8px;font-size:11px;font-family:DM Sans,sans-serif;outline:none;width:220px;';
+            el.replaceWith(input);
+            input.focus();
+            input.select();
+            function save() {
+                var span = document.createElement('span');
+                span.className = 'ph-comment-text';
+                span.style.cssText = 'font-size:11px;color:var(--gray-500);cursor:pointer;border-bottom:1px dashed var(--gray-300);';
+                span.setAttribute('onclick', "phEditComment('" + id + "',this)");
+                span.textContent = input.value || current;
+                input.replaceWith(span);
+            }
+            input.addEventListener('blur', save);
+            input.addEventListener('keydown', function(e){ if(e.key==='Enter') input.blur(); if(e.key==='Escape'){ input.value=current; input.blur(); }});
+        }
+
+        function phToggleActionStatut(btn) {
+            var row = btn.closest('tr');
+            var badge = row.querySelector('td span');
+            if (badge.textContent === 'Fait') {
+                badge.textContent = 'En cours';
+                badge.style.color = '#EA7600'; badge.style.background = '#FFF4E5';
+                btn.textContent = '✓ Clôturer';
+            } else {
+                badge.textContent = 'Fait';
+                badge.style.color = '#4BCA81'; badge.style.background = '#EAF7EE';
+                btn.textContent = '↩ Rouvrir';
+            }
+        }
+
+        function phAddAction() {
+            var tbody = document.getElementById('phActionsList');
+            var tr = document.createElement('tr');
+            tr.style.cssText = 'border-bottom:1px solid var(--gray-100);background:var(--gray-50);';
+            tr.innerHTML = '<td style="padding:8px 16px;" colspan="5">'
+                + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+                + '<input type="text" placeholder="Intitulé de l\'action…" style="flex:2;min-width:160px;padding:6px 10px;border:1.5px solid var(--red);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;outline:none;" id="phNewAction">'
+                + '<input type="text" placeholder="Responsable" style="flex:1;min-width:100px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;outline:none;" id="phNewResp" onfocus="this.style.borderColor=\'var(--red)\'" onblur="this.style.borderColor=\'var(--gray-200)\'">'
+                + '<input type="text" placeholder="JJ/MM/AAAA" style="width:110px;padding:6px 10px;border:1.5px solid var(--gray-200);border-radius:7px;font-size:12px;font-family:DM Sans,sans-serif;outline:none;" id="phNewDate" onfocus="this.style.borderColor=\'var(--red)\'" onblur="this.style.borderColor=\'var(--gray-200)\'">'
+                + '<button onclick="phConfirmAction(this)" style="padding:6px 14px;background:var(--red);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;font-family:DM Sans,sans-serif;cursor:pointer;">Ajouter</button>'
+                + '<button onclick="this.closest(\'tr\').remove()" style="padding:6px 10px;background:var(--white);color:var(--gray-500);border:1.5px solid var(--gray-200);border-radius:7px;font-size:12px;cursor:pointer;">Annuler</button>'
+                + '</div></td>';
+            tbody.prepend(tr);
+            document.getElementById('phNewAction').focus();
+        }
+
+        function phConfirmAction(btn) {
+            var action = document.getElementById('phNewAction').value.trim();
+            var resp   = document.getElementById('phNewResp').value.trim() || '—';
+            var date   = document.getElementById('phNewDate').value.trim() || '—';
+            if (!action) { document.getElementById('phNewAction').style.borderColor='#C23934'; return; }
+            var tbody = document.getElementById('phActionsList');
+            var newRow = document.createElement('tr');
+            newRow.style.cssText = 'border-bottom:1px solid var(--gray-100);transition:background 0.1s;';
+            newRow.setAttribute('onmouseover', "this.style.background='var(--gray-50)'");
+            newRow.setAttribute('onmouseout',  "this.style.background='transparent'");
+            newRow.innerHTML = '<td style="padding:10px 16px;font-weight:500;color:var(--black);">' + action + '</td>'
+                + '<td style="padding:10px 12px;color:var(--gray-600);">' + resp + '</td>'
+                + '<td style="padding:10px 12px;color:var(--gray-600);">' + date + '</td>'
+                + '<td style="padding:10px 12px;text-align:center;"><span style="font-size:11px;font-weight:600;color:var(--gray-500);background:var(--gray-100);padding:2px 8px;border-radius:12px;">À faire</span></td>'
+                + '<td style="padding:10px 16px;text-align:right;"><button onclick="phToggleActionStatut(this)" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;font-weight:500;">✓ Clôturer</button></td>';
+            btn.closest('tr').replaceWith(newRow);
+        }
+
+        function phAddVigilance() {
+            alert('Fonctionnalité : ajout d\'un point de vigilance (à brancher sur la liste clients)');
+        }
+
+        function phAddOdj() {
+            var list = document.getElementById('phOdjList');
+            var n = list.querySelectorAll('.ph-odj-item').length + 1;
+            var div = document.createElement('div');
+            div.className = 'ph-odj-item';
+            div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;';
+            div.innerHTML = '<span style="font-size:10px;font-weight:700;color:var(--white);background:var(--gray-300);width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + n + '</span>'
+                + '<input type="text" placeholder="Nouveau point…" style="flex:1;border:none;border-bottom:1.5px solid var(--red);outline:none;font-size:12px;font-family:DM Sans,sans-serif;padding:2px 4px;background:transparent;" onblur="if(!this.value)this.closest(\'.ph-odj-item\').remove(); else { var s=document.createElement(\'span\');s.style.cssText=\'font-size:12px;color:var(--black);font-weight:500;\';s.textContent=this.value;this.replaceWith(s); }" onkeydown="if(event.key===\'Enter\')this.blur();">';
+            list.appendChild(div);
+            div.querySelector('input').focus();
+        }
+
+        var _phNotesTimer;
+        function phSaveNotes() {
+            clearTimeout(_phNotesTimer);
+            _phNotesTimer = setTimeout(function(){
+                document.getElementById('phNotesSaved').textContent = 'Sauvegardé ✓';
+                setTimeout(function(){ document.getElementById('phNotesSaved').textContent=''; }, 2000);
+            }, 800);
+        }
+
+        function phCloturerPoint() {}
+
+        var _phSemaineData = {
+            45: { label:'Semaine 45 · 03–07 nov. 2026', statut:'en-cours', ca:'184 200 €', objectif:'195 000 €', pct:94, pctColor:'#EA7600', marge:'62 200 €', margePct:'33,8', cmds:47, devis:23, txTransfo:67, txColor:'#C23934', txDelta:'−3 pts vs objectif' },
+            44: { label:'Semaine 44 · 27–31 oct. 2026', statut:'cloture',   ca:'173 000 €', objectif:'195 000 €', pct:89, pctColor:'#C23934', marge:'58 400 €', margePct:'33,8', cmds:41, devis:18, txTransfo:72, txColor:'#4BCA81', txDelta:'+2 pts vs objectif' },
+            43: { label:'Semaine 43 · 20–24 oct. 2026', statut:'cloture',   ca:'191 400 €', objectif:'195 000 €', pct:98, pctColor:'#EA7600', marge:'65 100 €', margePct:'34,0', cmds:50, devis:21, txTransfo:75, txColor:'#4BCA81', txDelta:'+5 pts vs objectif' },
+            42: { label:'Semaine 42 · 13–17 oct. 2026', statut:'cloture',   ca:'178 200 €', objectif:'195 000 €', pct:91, pctColor:'#EA7600', marge:'59 200 €', margePct:'33,2', cmds:44, devis:20, txTransfo:68, txColor:'#C23934', txDelta:'−2 pts vs objectif' },
+            41: { label:'Semaine 41 · 06–10 oct. 2026', statut:'cloture',   ca:'162 900 €', objectif:'195 000 €', pct:84, pctColor:'#C23934', marge:'54 100 €', margePct:'33,2', cmds:38, devis:15, txTransfo:65, txColor:'#C23934', txDelta:'−5 pts vs objectif' },
+            39: { label:'Semaine 39 · 22–26 sep. 2026', statut:'cloture',   ca:'155 600 €', objectif:'180 000 €', pct:86, pctColor:'#C23934', marge:'52 000 €', margePct:'33,4', cmds:35, devis:14, txTransfo:70, txColor:'#EA7600', txDelta:'0 pts vs objectif' }
+        };
+
+        function phSelectSemaine(num, el) {
+            // Désactiver l'ancien item
+            document.querySelectorAll('.ph-list-item').forEach(function(i) {
+                i.classList.remove('active');
+                i.style.background = 'transparent';
+                i.querySelectorAll('span, div').forEach(function(s){
+                    s.style.color = ''; s.style.background = '';
+                });
+                // Re-appliquer les styles par défaut
+                var title = i.querySelector('span:first-child');
+                if (title) { title.style.color='var(--black)'; title.style.fontWeight='600'; }
+            });
+            // Activer le nouvel item
+            el.classList.add('active');
+            el.style.background = 'var(--red)';
+            el.querySelectorAll('div, span').forEach(function(s){ s.style.color=''; s.style.background=''; });
+
+            var d = _phSemaineData[num];
+            if (!d) return;
+
+            // Mettre à jour l'en-tête
+            document.getElementById('phSemaineLabel').textContent = d.label;
+            _phSemaine = num;
+
+            // KPIs
+            var kpiEls = document.querySelectorAll('#ph-detail .ph-kpi-val');
+            // On met à jour via les ids dédiés
+            var ids = ['phKpiCA','phKpiObj','phKpiMarge','phKpiCmds','phKpiDevis','phKpiTx'];
+            var vals = [d.ca, d.objectif, d.marge, d.cmds, d.devis, d.txTransfo + ' %'];
+            ids.forEach(function(id, i){ var el2=document.getElementById(id); if(el2) el2.textContent=vals[i]; });
+            var pBar = document.getElementById('phKpiPctBar');
+            var pLbl = document.getElementById('phKpiPctLbl');
+            if (pBar) { pBar.style.width=d.pct+'%'; pBar.style.background=d.pctColor; }
+            if (pLbl) { pLbl.textContent=d.pct+' %'; pLbl.style.color=d.pctColor; }
+            var txSub = document.getElementById('phKpiTxSub');
+            if (txSub) { txSub.textContent=d.txDelta; txSub.style.color=d.txColor; }
+        }
+
+        function phNouveauPoint() {
+            var now = new Date();
+            var annee = now.getFullYear();
+            // Calculer la semaine courante
+            var startOfYear = new Date(annee, 0, 1);
+            var days = Math.floor((now - startOfYear) / (24*3600*1000));
+            var weekNum = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+            var newNum = weekNum + 1;
+            if (_phSemaineData[newNum]) { phSelectSemaine(newNum, document.querySelector('[data-semaine="'+newNum+'"]')); return; }
+
+            // Créer l'item dans la liste
+            var list = document.getElementById('ph-list');
+            var firstGroup = list.querySelector('.ph-month-group');
+            var item = document.createElement('div');
+            item.className = 'ph-list-item active';
+            item.setAttribute('data-semaine', newNum);
+            item.onclick = function(){ phSelectSemaine(newNum, item); };
+            item.style.cssText = 'display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;cursor:pointer;background:var(--red);margin-bottom:3px;';
+            item.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;">'
+                + '<span style="font-size:12px;font-weight:700;color:#fff;">Semaine ' + newNum + '</span>'
+                + '<span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.7);background:rgba(255,255,255,0.18);padding:2px 7px;border-radius:10px;">En cours</span>'
+                + '</div>'
+                + '<div style="font-size:11px;color:rgba(255,255,255,0.8);">Nouveau point</div>'
+                + '<div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:1px;">CA : — · 0 action</div>';
+
+            _phSemaineData[newNum] = { label:'Semaine '+newNum+' — Nouveau', statut:'en-cours', ca:'—', objectif:'195 000 €', pct:0, pctColor:'var(--gray-300)', marge:'—', margePct:'—', cmds:0, devis:0, txTransfo:0, txColor:'var(--gray-400)', txDelta:'—' };
+
+            // Désactiver les anciens items
+            document.querySelectorAll('.ph-list-item').forEach(function(i){
+                i.classList.remove('active'); i.style.background='transparent';
+            });
+
+            if (firstGroup) firstGroup.insertBefore(item, firstGroup.querySelector('.ph-list-item'));
+            else list.prepend(item);
+
+            phSelectSemaine(newNum, item);
+        }
+
+        function phFilterList(q) {
+            q = q.toLowerCase().replace(/\s/g,'');
+            document.querySelectorAll('.ph-list-item').forEach(function(item) {
+                var sem = (item.getAttribute('data-semaine') || '').toString();
+                var text = item.textContent.toLowerCase().replace(/\s/g,'');
+                item.style.display = (!q || text.includes(q) || sem.includes(q)) ? '' : 'none';
+            });
+            document.querySelectorAll('.ph-month-group').forEach(function(g) {
+                var visible = Array.from(g.querySelectorAll('.ph-list-item')).some(function(i){ return i.style.display !== 'none'; });
+                g.style.display = visible ? '' : 'none';
+            });
+        }
+</script>
+
+        <!-- Page Projets -->
+        <div id="pageProjets" class="blank-page" style="display:none;"></div>
+
+        <!-- Page Accueil (vide) -->
+        <div id="pageAccueil" class="blank-page" style="display:flex;align-items:center;justify-content:center;">
+            <div style="display:flex;align-items:center;gap:14px;padding:20px 28px;background:#fff;border:1px solid var(--gray-200);border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                <div style="width:36px;height:36px;border-radius:10px;background:#FFF0F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <span style="font-size:13px;font-weight:500;color:#3E3E3C;">Mêmes fonctionnalités que le profil manager avec vue élargie et l'onglet supplémentaire Point hebdo</span>
+            </div>
+        </div>
+        <div id="pageRecherche" class="blank-page" style="display:none;padding:32px 40px;flex-direction:column;gap:20px;overflow-y:auto;flex:1;background:var(--gray-50);">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--gray-200);border-radius:12px;padding:10px 16px;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" placeholder="Rechercher un client, un chantier, un produit…" style="border:none;outline:none;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--black);background:transparent;flex:1;">
+                    <button style="padding:7px 20px;border:none;border-radius:8px;background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Rechercher</button>
+                </div>
+                <div style="padding-left:2px;"><span id="raRechercheToggle" onclick="toggleRaRecherche()" style="font-size:12px;color:var(--red);cursor:pointer;font-weight:500;user-select:none;">Recherche avancée ▾</span></div>
+            </div>
+            <div id="raRecherchePanel" style="display:none;flex-direction:column;gap:12px;">
+                <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:14px;">
+                    <div style="background:#fff;border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;"><div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Client</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;"><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Statut client</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous</option><option>Actif</option><option>Inactif</option><option>Prospect</option><option>Suspendu</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Secteur d'activité</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous les secteurs</option><option>Plâtrerie / Isolation</option><option>Peinture / Décoration</option><option>Gros œuvre</option><option>Menuiserie / Charpente</option><option>Électricité / Plomberie</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Groupement / Réseau</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous</option><option>FFB</option><option>CAPEB</option><option>Groupement Indépendant</option><option>Non affilié</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Programme fidélité</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous</option><option>Adhérent</option><option>Non adhérent</option></select></div></div></div>
+                    <div style="background:#fff;border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;"><div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg><span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Chantier</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;"><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Type de chantier</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous les types</option><option>Neuf</option><option>Rénovation</option><option>Extension</option><option>Entretien / maintenance</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Statut chantier</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous</option><option>Planifié</option><option>En cours</option><option>Terminé</option><option>Annulé</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Département</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous les départements</option><option>75 — Paris</option><option>69 — Rhône</option><option>33 — Gironde</option><option>13 — Bouches-du-Rhône</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Montant estimé (€)</label><div style="display:flex;gap:6px;align-items:center;"><input type="number" placeholder="Min" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><span style="font-size:11px;color:var(--gray-500);font-weight:500;">à</span><input type="number" placeholder="Max" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"></div></div></div></div>
+                    <div style="background:#fff;border:1.5px solid var(--gray-200);border-radius:10px;overflow:hidden;"><div style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:var(--gray-50);border-bottom:1px solid var(--gray-200);"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span style="font-size:10px;font-weight:700;color:var(--gray-700);text-transform:uppercase;letter-spacing:0.6px;">Commercial</span></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 14px;"><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">ATC référent</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Tous les ATC</option><option>Sophie Martin</option><option>Marc Dupuis</option><option>Julie Bernard</option><option>Thomas Laurent</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Agence de rattachement</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Toutes les agences</option><option>Paris Sud</option><option>Lyon Centre</option><option>Bordeaux</option><option>Marseille Nord</option></select></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">CA annuel (€)</label><div style="display:flex;gap:6px;align-items:center;"><input type="number" placeholder="Min" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><span style="font-size:11px;color:var(--gray-500);font-weight:500;">à</span><input type="number" placeholder="Max" style="width:50%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"></div></div><div><label style="font-size:10px;font-weight:600;color:var(--gray-600);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Dernière visite</label><select style="width:100%;box-sizing:border-box;padding:8px 12px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--black);background:#fff;outline:none;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--gray-200)'"><option value="">Toutes périodes</option><option>Cette semaine</option><option>Ce mois</option><option>Il y a moins de 3 mois</option><option>Il y a plus de 3 mois</option><option>Jamais visité</option></select></div></div></div>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end;align-items:center;">
+                    <button onclick="document.getElementById('raRecherchePanel').style.display='none';document.getElementById('raRechercheToggle').textContent='Recherche avancée ▾';" style="padding:8px 16px;border:1.5px solid var(--gray-200);border-radius:8px;background:#fff;color:var(--gray-700);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">Réinitialiser</button>
+                    <button style="padding:8px 20px;border:none;border-radius:8px;background:var(--red);color:#fff;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;">Lancer la recherche</button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- Help Modal -->
+    <div id="helpModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:9999;animation:fadeIn 0.2s ease;">
+        <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;border-radius:12px;width:90%;max-width:540px;box-shadow:0 20px 60px rgba(0,0,0,0.12);animation:slideInUp 0.3s ease;z-index:10000;">
+            <div style="padding:24px;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="font-size:24px;font-weight:700;color:var(--gray-600);margin:0;">Help !</h2>
+                <button onclick="closeHelpModal()" style="background:transparent;border:none;font-size:24px;cursor:pointer;color:var(--gray-400);padding:0;">×</button>
+            </div>
+            <div style="display:flex;border-bottom:1px solid var(--gray-200);">
+                <button onclick="switchHelpTab('new')" id="helpTabNew" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;font-size:14px;font-weight:500;color:var(--gray-500);border-bottom:3px solid transparent;transition:all 0.2s;">Nouvelle demande</button>
+                <button onclick="switchHelpTab('my')" id="helpTabMy" style="flex:1;padding:12px;border:none;background:transparent;cursor:pointer;font-size:14px;font-weight:500;color:var(--gray-500);border-bottom:3px solid transparent;transition:all 0.2s;">Mes demandes</button>
+            </div>
+            <div id="helpNewContent" style="padding:24px;">
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">Titre</label>
+                    <input type="text" id="helpTitle" placeholder="Titre de ma demande" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)';this.style.boxShadow='0 0 0 3px rgba(255,0,40,0.08)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'">
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">Type</label>
+                    <select id="helpType" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--gray-700);background:white;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)';this.style.boxShadow='0 0 0 3px rgba(255,0,40,0.08)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none'">
+                        <option value="">Type de demande</option>
+                        <option value="bug">Problème technique</option>
+                        <option value="feature">Suggestion de fonctionnalité</option>
+                        <option value="other">Autre</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:20px;">
+                    <label style="display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">Description</label>
+                    <textarea id="helpMessage" placeholder="Message" style="width:100%;box-sizing:border-box;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--gray-700);resize:vertical;min-height:120px;outline:none;transition:border-color 0.15s;" onfocus="this.style.borderColor='var(--red)';this.style.boxShadow='0 0 0 3px rgba(255,0,40,0.08)'" onblur="this.style.borderColor='var(--gray-200)';this.style.boxShadow='none';"></textarea>
+                </div>
+                <button onclick="submitHelpRequest()" style="width:100%;padding:12px;background:var(--red);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#DC2626';" onmouseout="this.style.background='var(--red)';">Envoyer ma demande</button>
+            </div>
+            <div id="helpMyContent" style="display:none;padding:16px 24px 24px;">
+            </div>
+        </div>
+    </div>
+
+    </div><!-- /app-wrapper -->
+
+    <script>
+        /* ── Quick Search ── */
+        function qsEscHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+        function qsHighlight(text, q) {
+            var idx = text.toLowerCase().indexOf(q);
+            if (idx === -1) return qsEscHtml(text);
+            return qsEscHtml(text.slice(0, idx)) + '<mark>' + qsEscHtml(text.slice(idx, idx + q.length)) + '</mark>' + qsEscHtml(text.slice(idx + q.length));
+        }
+        function handleQuickSearch(query) {
+            var input = document.getElementById('quickSearchInput');
+            var drop  = document.getElementById('quickSearchDropdown');
+            if (!drop || !input) return;
+            query = query.trim();
+            if (query.length === 0) { closeQuickSearch(); return; }
+            var q = query.toLowerCase();
+            var clients = (CLIENTS || []).filter(function(c) {
+                return (c.nom                && c.nom.toLowerCase().includes(q))
+                    || (c.ville              && c.ville.toLowerCase().includes(q))
+                    || (c.code               && c.code.toLowerCase().includes(q))
+                    || (c.siret              && c.siret.replace(/\s/g,'').includes(q.replace(/\s/g,'')))
+                    || (c.secteurActivite    && c.secteurActivite.toLowerCase().includes(q))
+                    || (c.activitePrincipale && c.activitePrincipale.toLowerCase().includes(q));
+            }).slice(0, 5);
+            var prospects = (PROSPECTS || []).filter(function(p) {
+                return (p.nom && p.nom.toLowerCase().includes(q)) || (p.ville && p.ville.toLowerCase().includes(q));
+            }).slice(0, 4);
+            var total = clients.length + prospects.length;
+            var html = '';
+            if (total === 0) {
+                html = '<div class="qs-empty">Aucun résultat pour <strong>&laquo;&nbsp;' + qsEscHtml(query) + '&nbsp;&raquo;</strong></div>';
+            } else {
+                if (clients.length > 0) {
+                    html += '<div class="qs-group-label">Clients</div>';
+                    clients.forEach(function(c) {
+                        var badge = c.statut === 'Actif' ? '<span class="qs-item-badge actif">Actif</span>' : '<span class="qs-item-badge inactif">Inactif</span>';
+                        html += '<div class="qs-item" onmousedown="event.preventDefault();quickSearchSelectClient(\'' + c.id + '\')">'
+                            + '<div class="qs-item-icon client"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>'
+                            + '<div class="qs-item-body"><div class="qs-item-name">' + qsHighlight(c.nom, q) + '</div><div class="qs-item-sub">' + qsEscHtml(c.ville || '') + ' &middot; ' + qsEscHtml(c.code || c.id) + (c.secteurActivite ? ' &middot; ' + qsEscHtml(c.secteurActivite) : '') + '</div></div>'
+                            + badge + '</div>';
+                    });
+                }
+                if (prospects.length > 0) {
+                    html += '<div class="qs-group-label">Prospects</div>';
+                    prospects.forEach(function(p) {
+                        var sl = (p.statut || '').toLowerCase();
+                        html += '<div class="qs-item" onmousedown="event.preventDefault();quickSearchSelectProspect(\'' + p.id + '\')">'
+                            + '<div class="qs-item-icon prospect"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EA7600" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>'
+                            + '<div class="qs-item-body"><div class="qs-item-name">' + qsHighlight(p.nom, q) + '</div><div class="qs-item-sub">' + qsEscHtml(p.ville || '') + (p.montant ? ' &middot; ' + qsEscHtml(p.montant) : '') + '</div></div>'
+                            + '<span class="qs-item-badge ' + sl + '">' + qsEscHtml(p.statut || '') + '</span></div>';
+                    });
+                }
+                if (total >= 5) html += '<div class="qs-footer">Affinez votre recherche pour voir plus de résultats</div>';
+            }
+            drop.innerHTML = html;
+            var zoom = parseFloat(window.getComputedStyle(document.body).zoom) || 1;
+            var rect = input.getBoundingClientRect();
+            var dropW = 520;
+            var centerX_css = (rect.left + rect.width / 2) / zoom;
+            var left_css = Math.max(8, Math.min(centerX_css - dropW / 2, window.innerWidth / zoom - dropW - 8));
+            drop.style.top = (rect.bottom / zoom + 6) + 'px';
+            drop.style.left = left_css + 'px';
+            drop.style.width = dropW + 'px';
+            drop.style.display = 'block';
+        }
+        function quickSearchSelectClient(clientId) {
+            closeQuickSearch();
+            document.getElementById('quickSearchInput').value = '';
+            if (typeof openClientDetail === 'function') openClientDetail(clientId);
+        }
+        function quickSearchSelectProspect(prospectId) {
+            closeQuickSearch();
+            document.getElementById('quickSearchInput').value = '';
+        }
+        function closeQuickSearch() {
+            var drop = document.getElementById('quickSearchDropdown');
+            if (drop) drop.style.display = 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var input = document.getElementById('quickSearchInput');
+            var drop  = document.getElementById('quickSearchDropdown');
+            if (!input || !drop) return;
+            if (!input.contains(e.target) && !drop.contains(e.target)) closeQuickSearch();
+        });
+
+        function toggleRA() {
+            var panel = document.getElementById('raPanel');
+            var toggle = document.getElementById('raToggle');
+            var open = panel.style.display === 'none' || panel.style.display === '';
+            panel.style.display = open ? 'block' : 'none';
+            toggle.textContent = open ? 'Recherche avancée ▴' : 'Recherche avancée ▾';
+        }
+
+        function showPage(page, el) {
+            document.querySelectorAll('.blank-page').forEach(function(p){ p.style.display = 'none'; });
+            document.querySelectorAll('.sidebar-icon').forEach(function(i) { i.classList.remove('active'); });
+            var vn = document.getElementById('viewNameBar');
+            if (page === 'recherche') {
+                if (vn) vn.textContent = 'Recherche';
+                var rechercheEl = document.getElementById('pageRecherche');
+                if (rechercheEl) { rechercheEl.style.display = 'flex'; rechercheEl.style.flexDirection = 'column'; rechercheEl.style.flex = '1'; rechercheEl.style.minHeight = '0'; }
+            } else if (page === 'pointHebdo') {
+                if (vn) vn.textContent = 'Point Hebdo';
+                var pointHebdoEl = document.getElementById('pagePointHebdo');
+                if (pointHebdoEl) { pointHebdoEl.style.display = 'flex'; pointHebdoEl.style.flexDirection = 'row'; pointHebdoEl.style.flex = '1'; pointHebdoEl.style.minHeight = '0'; pointHebdoEl.style.overflow = 'hidden'; }
+            } else if (page === 'projets') {
+                if (vn) vn.textContent = 'Projets';
+                var projetsEl = document.getElementById('pageProjets');
+                if (projetsEl) { projetsEl.style.display = 'flex'; projetsEl.style.flex = '1'; projetsEl.style.minHeight = '0'; }
+            } else {
+                if (vn) vn.textContent = 'Accueil';
+                var accueilEl = document.getElementById('pageAccueil');
+                if (accueilEl) accueilEl.style.display = 'flex';
+            }
+            if (el) el.classList.add('active');
+        }
+
+        function toggleRaRecherche() {
+            var panel = document.getElementById('raRecherchePanel');
+            var toggle = document.getElementById('raRechercheToggle');
+            if (panel.style.display === 'none') { panel.style.display = 'flex'; toggle.textContent = 'Recherche avancée ▴'; }
+            else { panel.style.display = 'none'; toggle.textContent = 'Recherche avancée ▾'; }
+        }
+
+        function toggleNotifPanel(e) {
+            e.stopPropagation();
+            var panel = document.getElementById('notifPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        function markAllNotifRead() {
+            document.getElementById('notifBadge').style.display = 'none';
+        }
+        document.addEventListener('click', function(e) {
+            var panel = document.getElementById('notifPanel');
+            var btn   = document.getElementById('notifBellBtn');
+            if (panel && !panel.contains(e.target) && e.target !== btn) {
+                panel.style.display = 'none';
+            }
+        });
+
+        function openHelpModal() {
+            document.getElementById('helpModal').style.display = 'block';
+            switchHelpTab('new');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        function switchHelpTab(tab) {
+            var isNew = tab === 'new';
+            document.getElementById('helpNewContent').style.display = isNew ? 'block' : 'none';
+            document.getElementById('helpMyContent').style.display  = isNew ? 'none'  : 'block';
+            document.getElementById('helpTabNew').style.borderBottomColor = isNew ? '#DC2626' : 'transparent';
+            document.getElementById('helpTabNew').style.color = isNew ? '#DC2626' : 'var(--gray-500)';
+            document.getElementById('helpTabMy').style.borderBottomColor  = isNew ? 'transparent' : '#DC2626';
+            document.getElementById('helpTabMy').style.color  = isNew ? 'var(--gray-500)' : '#DC2626';
+        }
+
+        var _helpRequests = [];
+
+        function _renderHelpRequests() {
+            var el = document.getElementById('helpMyContent');
+            if (!_helpRequests.length) {
+                el.innerHTML = '<div style="text-align:center;color:var(--gray-400);padding:24px 0;font-size:14px;">Vous n\'avez pas encore de demandes.</div>';
+                return;
+            }
+            var typeLabels = { bug: 'Bug / Anomalie', feature: 'Nouvelle fonctionnalité', question: 'Question', other: 'Autre' };
+            var statusColors = { 'En attente': '#EA7600', 'En cours': '#0070D2', 'Résolu': '#4BCA81' };
+            el.innerHTML = _helpRequests.map(function(r) {
+                var color = statusColors[r.statut] || '#EA7600';
+                return '<div style="padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:8px;margin-bottom:10px;background:var(--gray-50);">'
+                    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'
+                    + '<span style="font-size:13px;font-weight:700;color:var(--black);">' + r.titre + '</span>'
+                    + '<span style="font-size:11px;font-weight:600;color:' + color + ';background:' + color + '1A;padding:2px 8px;border-radius:20px;">' + r.statut + '</span>'
+                    + '</div>'
+                    + '<div style="font-size:12px;color:var(--gray-500);">' + (typeLabels[r.type] || r.type) + ' &bull; ' + r.date + '</div>'
+                    + (r.message ? '<div style="font-size:12px;color:var(--gray-600);margin-top:6px;">' + r.message + '</div>' : '')
+                    + '</div>';
+            }).join('');
+        }
+
+        function submitHelpRequest() {
+            var title = document.getElementById('helpTitle').value.trim();
+            var type  = document.getElementById('helpType').value;
+            var msg   = document.getElementById('helpMessage').value.trim();
+            if (!title || !msg) { alert('Veuillez renseigner le titre et la description.'); return; }
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+            _helpRequests.unshift({ titre: title, type: type, message: msg, date: dateStr, statut: 'En attente' });
+            document.getElementById('helpTitle').value   = '';
+            document.getElementById('helpType').value    = '';
+            document.getElementById('helpMessage').value = '';
+            _renderHelpRequests();
+            switchHelpTab('my');
+        }
+
+        // Fermer la modale Help au clic sur le fond
+        document.getElementById('helpModal').addEventListener('click', function(e) {
+            if (e.target === this) closeHelpModal();
+        });
+    </script>
+<div id="quickSearchDropdown" style="display:none;"></div>
+</body>
+</html>
